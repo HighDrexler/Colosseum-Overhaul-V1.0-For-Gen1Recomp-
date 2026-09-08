@@ -34,7 +34,7 @@
     "engine_internals"
   ],
   "affects_link": false,
-  "description": "Colosseum Overhaul 1.0 - fidelity release. Restores complete Relic scenery with native joint transforms; corrects arena texture coordinates, source colors, sampler state and grounded spectators. Includes trainer material/order fixes, Pokemon animation continuity and MoveFX tint/alpha/buffer fixes. Retains the runtime no-cache-screen and camera fixes. One-time retail arena refresh preserves valid actor, MoveFX and audio caches.",
+  "description": "Colosseum Overhaul 1.0 - complete fidelity release for Gen1Recomp. Includes Colosseum battle environments and UI, complete Relic scenery, grounded source audiences, native arena UV/color handling, trainer and Pokemon animation fixes, MoveFX fidelity improvements, and Android-safe battle-host recovery with GLES-compatible renderer fallbacks. Existing valid generated caches remain reusable.",
   "required_imports": [
     {
       "id": "pokemon_colosseum_usa",

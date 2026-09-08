@@ -251,6 +251,48 @@ vec4 effect(vec4 color, Image texture, vec2 uv, vec2 screen) {
   return vec4(shaded,alpha);
 }
 ]]
+-- Emergency Android shader fallback. The primary mobile shader preserves
+-- authored motion/material behavior; this pair exists solely to keep the source
+-- arena visible on GLES drivers that reject the larger vertex program. It uses
+-- the same source geometry/textures with static transforms and simple HSD color.
+local ANDROID_SAFE_VERTEX = [[
+uniform mat4 vp;
+uniform mat4 model;
+attribute vec4 VertexTint;
+attribute vec3 VertexNormal;
+varying vec4 tint;
+varying float crowdPhase;
+varying vec3 worldPos;
+varying vec3 worldNormal;
+vec4 position(mat4 transform_projection, vec4 vertex_position) {
+  tint=VertexTint; crowdPhase=0.0;
+  vec4 world=model*vertex_position;
+  worldPos=world.xyz; worldNormal=normalize((model*vec4(VertexNormal,0.0)).xyz);
+  return vp*world;
+}
+]]
+local ANDROID_SAFE_PIXEL = [[
+uniform float materialAlpha;
+uniform float materialMode;
+uniform vec3 materialDiffuse;
+uniform float sourceVertexColor;
+uniform float sourceVertexAlpha;
+varying vec4 tint;
+varying float crowdPhase;
+varying vec3 worldPos;
+varying vec3 worldNormal;
+vec4 effect(vec4 color, Image texture, vec2 uv, vec2 screen) {
+  vec4 texel=Texel(texture,uv)*color;
+  vec3 base=materialDiffuse;
+  if (sourceVertexColor>0.5) base*=tint.rgb;
+  float a=texel.a*materialAlpha;
+  if (sourceVertexAlpha>0.5) a*=tint.a;
+  if (materialMode>2.5) { if (a<0.34) discard; a=1.0; }
+  else if (a<=0.012) discard;
+  return vec4(clamp(texel.rgb*base,vec3(0.0),vec3(1.0)),clamp(a,0.0,1.0));
+}
+]]
+
 local PIXEL = [[
 uniform float materialAlpha;
 uniform float materialMode;
@@ -818,6 +860,7 @@ vec4 effect(vec4 color, Image texture, vec2 uv, vec2 screen) {
 ]]
 
 local scene, shader, white
+local shaderMode=nil
 local outskirtsFarFieldMesh,relicFarFieldMesh=nil,nil
 -- Cache of which uniforms the currently compiled arena shader actually
 -- declares. Invalidated whenever `shader` is rebuilt or released.
@@ -1219,18 +1262,26 @@ local function ensureArenaShader(ctx)
   local ok,sh
   if ARENA_ANDROID then
     ok,sh=pcall(love.graphics.newShader,MOBILE_VERTEX,MOBILE_PIXEL)
-    if not ok then
-      local mobileErr=sh
-      local okFull,full=pcall(love.graphics.newShader,VERTEX,PIXEL)
-      if okFull then ok,sh=true,full
-      else sh=("mobile=%s; full=%s"):format(tostring(mobileErr),tostring(full)) end
-    else
+    if ok and sh then
+      shaderMode="android-mobile"
       log(ctx,"info","Android GLES-safe arena shader active")
+    else
+      local mobileErr=sh
+      local okSafe,safe=pcall(love.graphics.newShader,ANDROID_SAFE_VERTEX,ANDROID_SAFE_PIXEL)
+      if okSafe and safe then
+        ok,sh=true,safe;shaderMode="android-safe-static"
+        log(ctx,"warn","primary Android arena shader rejected; safe static source shader active: %s",tostring(mobileErr))
+      else
+        local safeErr=safe
+        local okFull,full=pcall(love.graphics.newShader,VERTEX,PIXEL)
+        if okFull and full then ok,sh=true,full;shaderMode="desktop-fallback"
+        else sh=("mobile=%s; safe=%s; full=%s"):format(tostring(mobileErr),tostring(safeErr),tostring(full)) end
+      end
     end
   else
-    ok,sh=pcall(love.graphics.newShader,VERTEX,PIXEL)
+    ok,sh=pcall(love.graphics.newShader,VERTEX,PIXEL);if ok and sh then shaderMode="desktop" end
   end
-  if not ok then return nil,"shader: "..tostring(sh) end
+  if not ok or not sh then return nil,"shader: "..tostring(sh) end
   shader=sh
   uniformCache=nil;uniformCacheShader=nil
   return shader
@@ -2508,10 +2559,39 @@ function A:update(ctx,dt,arena)
   end
   updateAnchors(arena)
 end
+local function clearArenaTarget(out)
+  if depthActive then
+    local ok,err=pcall(love.graphics.clear,0.025,0.075,0.145,1,true,true)
+    if ok then return true end
+    -- Some Android LÖVE/GLES combinations accept the depth attachment but reject
+    -- the extended clear signature. Detach depth and keep rendering color-only
+    -- instead of aborting the entire arena.
+    log(nil,"warn","depth clear rejected; switching arena to color-only fallback: %s",tostring(err))
+    pcall(love.graphics.setDepthMode)
+    local rebound,rerr=pcall(love.graphics.setCanvas,out)
+    if not rebound then return false,rerr end
+    depthActive=false;depthMode="none"
+  end
+  local ok,err=pcall(love.graphics.clear,0.025,0.075,0.145,1)
+  return ok,err
+end
+
+local function safeArenaPass(ctx,label,fn)
+  local ok,err=pcall(fn)
+  if ok then renderErrors[label]=nil;return true end
+  local text=tostring(err)
+  local changed=renderErrors[label]~=text
+  renderErrors[label]=text
+  pcall(love.graphics.setShader);pcall(love.graphics.setDepthMode)
+  if changed then log(ctx,"warn","arena %s pass failed open: %s",tostring(label),text) end
+  return false
+end
+
 function A:render(ctx,arena,drawActors)
   local s=loadScene(ctx); if not s then return V.FALLBACK end
   local w,h=pixelSize(); if not (w and h and w>0 and h>0) then return V.FALLBACK end
   local ok,out=pcall(ensureCanvas,w,h); if not ok then error(out) end
+  if not out then return V.FALLBACK end
   local vp,pose=viewProjection(ctx,w,h)
   local model=Mat4.mul(Mat4.rotateY(STAGE_YAW),Mat4.scale(STAGE_SCALE,STAGE_SCALE,STAGE_SCALE))
   local actorVP=Mat4.mul(vp,Mat4.scale(figureScale,figureScale,figureScale))
@@ -2530,18 +2610,19 @@ function A:render(ctx,arena,drawActors)
     local baked=ensureBackdrop(w,h)
     local bound,bindErr=bindArenaCanvas(out)
     if not bound then error("arena framebuffer bind: "..tostring(bindErr)) end
-    if depthActive then love.graphics.clear(0.025,0.075,0.145,1,true,true)
-    else love.graphics.clear(0.025,0.075,0.145,1) end
-    drawBackdrop(w,h,vp,baked)
+    local cleared,clearErr=clearArenaTarget(out)
+    if not cleared then error("arena framebuffer clear: "..tostring(clearErr)) end
+    safeArenaPass(ctx,"backdrop",function() drawBackdrop(w,h,vp,baked) end)
 
-    -- 1) True solid geometry and binary-alpha cutouts establish scene depth.
-    setStageState(vp,model,true,pose)
-    drawRelicFarField()
-    drawOutskirtsFarField()
-    drawRelicSourceForestShell(s,vp,model,pose)
-    drawGroups(s.opaque,pose)
-    drawGroups(s.cutout,pose)
-    drawCrowd(s.crowd,vp,model,pose)
+    -- 1) Isolate arena buckets on Android/portable drivers. One malformed mesh or
+    -- backend-specific material draw must not discard the entire completed frame.
+    safeArenaPass(ctx,"opaque",function()
+      setStageState(vp,model,true,pose)
+      drawRelicFarField();drawOutskirtsFarField();drawRelicSourceForestShell(s,vp,model,pose)
+      drawGroups(s.opaque,pose)
+    end)
+    safeArenaPass(ctx,"cutout",function() setStageState(vp,model,true,pose);drawGroups(s.cutout,pose) end)
+    safeArenaPass(ctx,"crowd",function() setStageState(vp,model,true,pose);drawCrowd(s.crowd,vp,model,pose) end)
 
     -- 2) The boss trainer shadow is authored directly onto the Colosseum
     -- floor before any figures draw. It is deliberately separate from the
@@ -2593,15 +2674,14 @@ function A:render(ctx,arena,drawActors)
 
     -- 5) Water/glass/NO_ZUPDATE material groups are camera-sorted and then
     -- composited without depth writes, preserving actors behind transparency.
-    setStageState(vp,model,false,pose)
-    drawTransparent(s.translucent,pose)
+    safeArenaPass(ctx,"translucent",function() setStageState(vp,model,false,pose);drawTransparent(s.translucent,pose) end)
     -- Source waterfall/highlight layers use additive energy. Treating their
     -- black background as alpha in 0.0.3 produced dark cards/slabs.
-    drawAdditive(s.additive,pose)
+    safeArenaPass(ctx,"additive",function() setStageState(vp,model,false,pose);drawAdditive(s.additive,pose) end)
 
     -- Final ambient desert motion. It is intentionally subtle and screen-space;
     -- all actual Outskirts geometry remains source-backed.
-    drawOutskirtsSandDrift(w,h)
+    safeArenaPass(ctx,"atmosphere",function() drawOutskirtsSandDrift(w,h) end)
 
     -- Colosseum Type-4 filter/blur/distortion effects operate on the completed
     -- scene framebuffer. Give WazaHandlers the arena canvas only after all
@@ -2654,7 +2734,7 @@ function A:resetRuntime()
   pcall(function() if depthCanvas and depthCanvas.release then depthCanvas:release() end end)
   pcall(function() if backdropCanvas and backdropCanvas.release then backdropCanvas:release() end end)
   backdropCanvas=nil;backdropKey=nil
-  scene=nil;shader=nil;white=nil;canvas=nil;depthCanvas=nil;depthMode=nil;depthActive=false;cw=nil;ch=nil;errorText=nil;renderErrors={};sceneTime=0
+  scene=nil;shader=nil;shaderMode=nil;white=nil;canvas=nil;depthCanvas=nil;depthMode=nil;depthActive=false;cw=nil;ch=nil;errorText=nil;renderErrors={};sceneTime=0
   uniformCache=nil;uniformCacheShader=nil
   residentScenes={};residentUse={};residentSerial=0;activeDef=nil;activeArenaId="water"
   if Trainer and type(Trainer.resetRuntime)=="function" then pcall(Trainer.resetRuntime,Trainer) end
@@ -2675,7 +2755,7 @@ function A:status()
     crowdOriginal=scene and scene.crowdOriginal or 0,
     crowdPolicy=scene and scene.crowdPolicy or nil,
     crowdOutliers=scene and scene.crowdOutliers or 0,
-    activeArena=activeArenaId,cache=activeDef and activeDef.cache or nil,profile=activeDef and activeDef.profile or nil,source=scene and scene.source or nil,framebufferMode=depthMode,depthActive=depthActive,android=ARENA_ANDROID,
+    activeArena=activeArenaId,cache=activeDef and activeDef.cache or nil,profile=activeDef and activeDef.profile or nil,source=scene and scene.source or nil,framebufferMode=depthMode,depthActive=depthActive,shaderMode=shaderMode,android=ARENA_ANDROID,
     backdropBaked=backdropCanvas~=nil,backdropBakes=backdropBakes,
     residentScenes=residentCount(),residentLimit=RESIDENT_LIMIT,runtimeSidecar=scene and scene.runtimeSidecar==true or false,runtimeMeshHits=arenaRuntimeHits,runtimeMeshWrites=arenaRuntimeWrites,
   }

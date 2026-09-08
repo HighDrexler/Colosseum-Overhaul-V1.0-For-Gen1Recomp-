@@ -1,1 +1,5 @@
-1.0 FIDELITY RELEASE -- COMPLETE RELIC SOURCE SCENERY; GROUNDED SOURCE AUDIENCES; NATIVE ARENA UV/COLOR; TRAINER AND ANIMATION FIXES; NO RUNTIME CACHE SCREEN
+1.0 COMPLETE RELEASE — COLOSSEUM BATTLE ENVIRONMENTS + COLOSSEUM-INSPIRED UI
+• Complete Colosseum arena presentation with fidelity, trainer, Pokemon animation, MoveFX, audio and camera improvements.
+• Includes Android-safe battle-host recovery, GLES-compatible arena shader fallback, depth-target fallback and isolated render-pass recovery.
+• Prevents renderer faults from leaving black or white battle screens while preserving normal battle flow.
+• Existing valid generated model, arena, MoveFX and audio caches remain reusable.

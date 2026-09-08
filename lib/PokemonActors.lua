@@ -202,6 +202,10 @@ local idleWarmNextAt=0
 local actionWarmQueue={}
 local actionWarmSeen={}
 local actionWarmNextAt=0
+local battleWarmQueue={}
+local battleWarmSeen={}
+local battleWarmTask=nil
+local battleWarmCurrent=nil
 local hardCacheQueue={}
 local hardCacheGame=nil
 local hardCacheState={running=false,total=0,done=0,failed=0,bases=0,actions=0,last=nil}
@@ -2072,6 +2076,16 @@ function A.acquire(source,dex,variant,opts)
   -- already cached. Drop any GPU scene we built from the stale cache too,
   -- otherwise the old meshes stay resident for the rest of the session.
   if not resident and not speciesCacheReady(cacheKey) then
+    -- Android's live battle draw is a render path, not a source-build boundary.
+    -- If this identity is genuinely cold, leave it for pumpBattlePrewarm() rather
+    -- than opening/extracting the Colosseum source synchronously behind a black
+    -- transition or during a switch animation. Information/cache screens and
+    -- explicit preparation jobs keep their existing source-backed behavior.
+    local services=opts and opts.context and opts.context.services
+    if ANDROID_RUNTIME and services and services.cbeStandalone==true
+        and services.prewarm~=true and services.informationSurface~=true then
+      return nil,"android battle model pending cooperative preparation"
+    end
     if scenes[cacheKey] then scenes[cacheKey]=nil;sceneErrors[cacheKey]=nil end
     local failure=pendingExtract[cacheKey]
     if failure and retryClock()<failure.retryAt then return nil,failure.reason end
@@ -2126,7 +2140,8 @@ function A.acquire(source,dex,variant,opts)
   -- leave the global key unresolved so a later real battle actor can perform the
   -- authoritative source metadata read when it actually needs move timing.
   local needsFilter=variant=="shiny" and not Dex.rare[dex]
-  if ((metadata==nil and not informationSurface) or (needsFilter and not validFilter(metadata and metadata.shinyFilter)))
+  if not (opts and opts.noSource==true)
+      and ((metadata==nil and not informationSurface) or (needsFilter and not validFilter(metadata and metadata.shinyFilter)))
       and metadataReader and discOpener then
     local okDisc,disc=pcall(discOpener)
     if okDisc and disc then
@@ -2847,8 +2862,68 @@ function A.pumpActionPrewarm(maxJobs)
   return done,#actionWarmQueue
 end
 
+local prewarmBattler
 
-local function prewarmBattler(game,battler,side,allowExtract,warmActions,queueActions)
+local function queueBattleWarmRow(battle,side,battler)
+  local game=battle and battle.game
+  local dex=battlerCacheKey(game,battler)
+  if not (game and battler and dex and Dex.supported(dex)) then return false end
+  local variant=monVariant(battler)
+  local key=tostring(modelKey(dex,variant))
+  if A.peek("cbe-battle-deferred",dex,variant).resident then return false end
+  local id=tostring(side or "?")..":"..key
+  if battleWarmSeen[id] then return false end
+  battleWarmSeen[id]=true
+  battleWarmQueue[#battleWarmQueue+1]={battle=battle,game=game,side=side,battler=battler,dex=dex,variant=variant,id=id}
+  return true
+end
+
+function A.cancelBattlePrewarm(reason)
+  if battleWarmTask and WorkBudget then pcall(WorkBudget.cancel,battleWarmTask) end
+  battleWarmTask=nil;battleWarmCurrent=nil;battleWarmQueue={};battleWarmSeen={}
+  return true
+end
+
+function A.queueBattlePrewarm(battle,side,battler)
+  if side then return queueBattleWarmRow(battle,side,battler) and 1 or 0 end
+  local n=0
+  for _,name in ipairs({"player","enemy"}) do
+    local b=battle and battle[name]
+    if b and queueBattleWarmRow(battle,name,b) then n=n+1 end
+  end
+  return n
+end
+
+function A.pumpBattlePrewarm(milliseconds)
+  if not ANDROID_RUNTIME then return false,#battleWarmQueue end
+  if not WorkBudget then return false,#battleWarmQueue end
+  if not battleWarmTask then
+    local row=table.remove(battleWarmQueue,1)
+    if not row then return false,0 end
+    battleWarmCurrent=row
+    battleWarmTask=WorkBudget.new(function()
+      local ok,err=prewarmBattler(row.game,row.battler,row.side,true,false,true,WorkBudget.checkpoint)
+      if not ok then return false,err end
+      return true,"prepared"
+    end,"Battle model "..tostring(row.dex).." / "..tostring(row.variant))
+  end
+  local ok,state,result,why=WorkBudget.resume(battleWarmTask,tonumber(milliseconds) or 3)
+  if not ok or state=="done" then
+    local row=battleWarmCurrent
+    if row then battleWarmSeen[row.id]=nil end
+    battleWarmTask=nil;battleWarmCurrent=nil
+    if not ok or result==false then
+      local err=tostring((not ok and state) or why or "battle model preparation failed")
+      if row then pendingExtract[modelKey(row.dex,row.variant)]={retryAt=retryClock()+2,reason=err} end
+      log("warn","deferred Android battle model preparation failed: %s",err)
+    end
+    return true,#battleWarmQueue
+  end
+  return true,#battleWarmQueue+1
+end
+
+
+prewarmBattler=function(game,battler,side,allowExtract,warmActions,queueActions,progress)
   local dex=battlerCacheKey(game,battler)
   if not (dex and Dex.supported(dex)) then return false,"unsupported battler",0 end
   local cached=speciesCacheReady(dex)
@@ -2857,7 +2932,7 @@ local function prewarmBattler(game,battler,side,allowExtract,warmActions,queueAc
   -- compact cache, GPU meshes, source metadata and idle bank now, so the later
   -- send-out is a resident hash-table hit rather than a multi-megabyte parse.
   local ctx={game=game,battle={game=game},arena={figureScale=DEFAULT_FIGURE_SCALE},services={prewarm=true}}
-  local actor,err=A.acquire("cbe-prewarm",dex,monVariant(battler),{context=ctx,battler=battler,side=side})
+  local actor,err=A.acquire("cbe-prewarm",dex,monVariant(battler),{context=ctx,battler=battler,side=side,progress=progress,noSource=not allowExtract})
   if not actor then return false,err,0 end
   local actions=0
   if warmActions~=false then actions=warmRequiredActions(actor.scene,game,battler)
@@ -3296,7 +3371,10 @@ end
 -- game.ready. If an opponent was not imported yet we permit source extraction
 -- here: a single transition hold is preferable to an empty slot followed by a
 -- multi-second pop-in on the visible send-out frame.
-function A.prewarmBattle(battle)
+function A.prewarmBattle(battle,opts)
+  opts=type(opts)=="table" and opts or {}
+  local allowExtract=opts.allowExtract~=false
+  local deferCold=opts.deferCold==true
   local game=battle and battle.game
   if type(game)~="table" then return {ready=0,failed=0,actions=0,rosterReady=0,elapsedMs=0} end
   local clock=(love and love.timer and love.timer.getTime) or os.clock
@@ -3315,11 +3393,16 @@ function A.prewarmBattle(battle)
       -- and spreads native damage/faint/move-bank uploads across stable battle
       -- frames. This keeps exact source actions while avoiding a single
       -- multi-bank main-thread spike on the transition boundary.
-      local ok,err,actions=prewarmBattler(game,battler,side,true,false)
+      local ok,err,actions=prewarmBattler(game,battler,side,allowExtract,false)
       if ok then
         out.ready=out.ready+1
         out.deferredActions=(out.deferredActions or 0)+(tonumber(actions) or 0)
-      else out.failed=out.failed+1;out.errors[side]=tostring(err) end
+      else
+        out.failed=out.failed+1;out.errors[side]=tostring(err)
+        if deferCold and queueBattleWarmRow(battle,side,battler) then
+          out.deferred=(out.deferred or 0)+1
+        end
+      end
     end
   end
 
@@ -3336,13 +3419,16 @@ function A.prewarmBattle(battle)
   return out
 end
 
-function A.prewarmSwitch(battle,side,battler)
+function A.prewarmSwitch(battle,side,battler,opts)
+  opts=type(opts)=="table" and opts or {}
   local game=battle and battle.game
   battler=battler or (battle and side and battle[side])
   if not (game and battler) then return false,"missing replacement" end
-  local ok,err,actions=prewarmBattler(game,battler,side,true,false)
+  local ok,err,actions=prewarmBattler(game,battler,side,opts.allowExtract~=false,false)
   if ok then
     perf.switchPrewarms=(perf.switchPrewarms or 0)+1
+  elseif opts.deferCold==true then
+    queueBattleWarmRow(battle,side,battler)
   end
   return ok,err,actions
 end

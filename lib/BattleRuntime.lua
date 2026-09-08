@@ -148,7 +148,10 @@ local function dispatch(name,payload)
     if not side and type(payload)=="table" then side=payload.side or payload.targetSide end
     if BattleSides and type(BattleSides.value)=="function" then side=BattleSides.value(side) or side end
     local replacement=type(payload)=="table" and (payload.replacement or payload.newBattler or payload.battler or payload.target) or nil
-    if side then pcall(PokemonActors.prewarmSwitch,battle,side,replacement) end
+    if side then
+      pcall(PokemonActors.prewarmSwitch,battle,side,replacement,
+        ANDROID_RUNTIME and {allowExtract=false,deferCold=true} or nil)
+    end
   end
   if BattleDirector and type(BattleDirector.event)=="function" then
     pcall(BattleDirector.event,BattleDirector,ctx,name,payload)
@@ -224,40 +227,45 @@ local function beginBattle(payload)
 
   -- HARD OWNERSHIP CONTRACT:
   -- If CBE is equipped and COLOSSEUM ARENAS is enabled, CBE's local host owns
-  -- the complete BattleState world/compositor on BOTH generations. Stadium,
-  -- Battle Art, Dramatic Shape and any other full-stage provider are never
-  -- allowed to become the battle host. They may contribute Pokemon artwork or
-  -- portable battleActors through CurrentSpriteModels, but arena/camera/trainers
-  -- and BattleState presentation flow remain CBE-authored without exception.
+  -- the complete BattleState world/compositor on BOTH generations while it can
+  -- produce a valid frame. Stadium/Battle Art may contribute Pokemon artwork or
+  -- portable battleActors, but not the stage. A CBE render fault is the single
+  -- safety exception: that frame fails open to the authoritative engine field
+  -- rather than suppressing the battle into black.
   --
   -- Older builds delegated Gen I to Stadium's provider host when present. That
   -- allowed Battle Art staging selected inside Stadium to replace the arena,
   -- which is the regression this branch removes.
   if StadiumBridge then StadiumBridge.setDelegated(false) end
 
-  -- Model readiness is part of CBE's battle-entry contract. The old path
-  -- deliberately deferred HSD scene creation until draw() to avoid a black
-  -- transition stall; that traded one pause for a much worse visible late
-  -- spawn on high-detail Pokemon. Prepare both active battlers and only the
-  -- native action banks their current moves require before the arena opens.
-  local modelStart=wallNow()
-  if PokemonActors and type(PokemonActors.prewarmBattle)=="function" then
-    local okWarm,result=pcall(PokemonActors.prewarmBattle,battle)
-    if okWarm then R.modelPrewarm=result else R.modelPrewarm={failed=2,error=tostring(result)} end
-  end
-  local modelEnd=wallNow()
-
+  -- Android battle entry must establish a drawable CBE host BEFORE any Pokemon
+  -- cache/model work. The transition reaches its black resolve before this event;
+  -- doing source extraction or a large GPU upload first can therefore leave the
+  -- device staring at a black frame with no arena compositor alive yet.
   local hostStart=wallNow()
   local began=StandaloneHost.begin(battle)
   local hostEnd=wallNow()
-  R.entryTiming={totalMs=math.max(0,(hostEnd-entryStart)*1000),modelMs=math.max(0,(modelEnd-modelStart)*1000),
-    hostMs=math.max(0,(hostEnd-hostStart)*1000),began=began and true or false}
+
+  -- Desktop keeps the established eager active-pair readiness policy. Android
+  -- promotes only already-generated models here and queues genuinely cold models
+  -- for cooperative work AFTER the arena has successfully presented a frame.
+  -- No source extraction is permitted on this battle.started boundary.
+  local modelStart=wallNow()
+  if began and PokemonActors and type(PokemonActors.prewarmBattle)=="function" then
+    local opts=ANDROID_RUNTIME and {allowExtract=false,deferCold=true} or nil
+    local okWarm,result=pcall(PokemonActors.prewarmBattle,battle,opts)
+    if okWarm then R.modelPrewarm=result else R.modelPrewarm={failed=2,error=tostring(result)} end
+  else
+    R.modelPrewarm={ready=0,failed=0,deferred=0,hostUnavailable=not began}
+  end
+  local modelEnd=wallNow()
+  R.entryTiming={totalMs=math.max(0,(modelEnd-entryStart)*1000),modelMs=math.max(0,(modelEnd-modelStart)*1000),
+    hostMs=math.max(0,(hostEnd-hostStart)*1000),began=began and true or false,androidDeferred=ANDROID_RUNTIME and true or false}
   if NativeTrainerSprites then
     if began then NativeTrainerSprites:begin({battle=battle})
     else
-      -- Even a source/cache failure must not hand ownership to another battle
-      -- compositor. Keep CBE's staging bridge authoritative and fail only this
-      -- native trainer-picture suppression seam.
+      -- Host acquisition failed, so CBE is not presenting the world this battle.
+      -- Do not suppress native trainer pictures on top of the fail-open field.
       NativeTrainerSprites:finish({battle=battle})
     end
   end
@@ -273,6 +281,9 @@ local function finishPresentation(battle,reason)
   end
   local hostFinishStart=wallNow()
   if StandaloneHost then StandaloneHost.finish(reason or "battle.ended") end
+  if PokemonActors and type(PokemonActors.cancelBattlePrewarm)=="function" then
+    pcall(PokemonActors.cancelBattlePrewarm,"battle-ended")
+  end
   local hostFinishEnd=wallNow()
   -- A delegated Stadium compositor has no StandaloneHost session to own actor
   -- cleanup. Close CBE's portable actors explicitly at the same authoritative
@@ -433,11 +444,25 @@ function R.runWorkFrame(game,topBefore,topAfter)
     -- An optional Party/Summary overlay still belongs to the current battle.
     -- Permit ONLY the selected viewer's resumable jobs, not startup/arena work.
     pcall(ResidentPrewarm.pump,game,true)
+  elseif R.activeBattle and not stateChanged and ANDROID_RUNTIME and PokemonActors
+      and type(PokemonActors.pumpBattlePrewarm)=="function" then
+    local presented=false
+    if StandaloneHost and type(StandaloneHost.status)=="function" then
+      local okStatus,status=pcall(StandaloneHost.status)
+      presented=okStatus and type(status)=="table" and status.presented==true and status.failOpen~=true
+    end
+    if presented then
+      local okPump,worked,pending=pcall(PokemonActors.pumpBattlePrewarm,3)
+      if okPump and (worked==true or (tonumber(pending) or 0)>0) then return end
+    end
+    if perfNow>=androidActionWarmNextAt and type(PokemonActors.pumpActionPrewarm)=="function" then
+      pcall(PokemonActors.pumpActionPrewarm,1);androidActionWarmNextAt=perfNow+0.18
+    end
   elseif R.activeBattle and not stateChanged and perfNow>=androidActionWarmNextAt and PokemonActors and type(PokemonActors.pumpActionPrewarm)=="function" then
-    -- Exact source action banks are staged on every platform rather than
-    -- bulk-uploaded on battle.started. One bank per stable frame window
-    -- keeps transition latency bounded without changing battle timing.
-    pcall(PokemonActors.pumpActionPrewarm,1);androidActionWarmNextAt=perfNow+(ANDROID_RUNTIME and 0.18 or 0.07)
+    -- Exact source action banks are staged rather than bulk-uploaded on
+    -- battle.started. One bank per stable frame window keeps transition latency
+    -- bounded without changing battle timing.
+    pcall(PokemonActors.pumpActionPrewarm,1);androidActionWarmNextAt=perfNow+0.07
   end
 end
 function R.attachFrame(game)
