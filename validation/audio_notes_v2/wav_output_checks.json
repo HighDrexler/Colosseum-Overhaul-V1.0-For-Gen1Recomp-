@@ -1,0 +1,224 @@
+{
+  "files_checked": 27,
+  "all_below_full_scale": true,
+  "silent_intros": 3,
+  "silent_intro_explanation": "Source split lies just before the first note: verified via source note timestamps. All 11 loops and four music one-shots plus EXP are nonzero.",
+  "outputs": [
+    {
+      "path": "assets/audio/battle_cues/exp_gain.wav",
+      "frames": 1536,
+      "rate": 32000,
+      "channels": 2,
+      "absolute_peak_code": 23143,
+      "source_authored_silent_intro": false
+    },
+    {
+      "path": "assets/audio/battle_cues/level_up.wav",
+      "frames": 96256,
+      "rate": 48000,
+      "channels": 2,
+      "absolute_peak_code": 23319,
+      "source_authored_silent_intro": false
+    },
+    {
+      "path": "assets/audio/battle_cues/victory.wav",
+      "frames": 250880,
+      "rate": 48000,
+      "channels": 2,
+      "absolute_peak_code": 29578,
+      "source_authored_silent_intro": false
+    },
+    {
+      "path": "assets/audio/capture/me_snatch.wav",
+      "frames": 188416,
+      "rate": 48000,
+      "channels": 2,
+      "absolute_peak_code": 25560,
+      "source_authored_silent_intro": false
+    },
+    {
+      "path": "assets/audio/intro/fanfare00.wav",
+      "frames": 581120,
+      "rate": 48000,
+      "channels": 2,
+      "absolute_peak_code": 32113,
+      "source_authored_silent_intro": false
+    },
+    {
+      "path": "assets/audio/themes/cipher_admin_intro.wav",
+      "frames": 2311138,
+      "rate": 48000,
+      "channels": 2,
+      "absolute_peak_code": 15640,
+      "source_authored_silent_intro": false
+    },
+    {
+      "path": "assets/audio/themes/cipher_admin_loop.wav",
+      "frames": 1740705,
+      "rate": 48000,
+      "channels": 2,
+      "absolute_peak_code": 32112,
+      "source_authored_silent_intro": false
+    },
+    {
+      "path": "assets/audio/themes/cipher_peon_intro.wav",
+      "frames": 322765,
+      "rate": 48000,
+      "channels": 2,
+      "absolute_peak_code": 19154,
+      "source_authored_silent_intro": false
+    },
+    {
+      "path": "assets/audio/themes/cipher_peon_loop.wav",
+      "frames": 3471781,
+      "rate": 48000,
+      "channels": 2,
+      "absolute_peak_code": 32112,
+      "source_authored_silent_intro": false
+    },
+    {
+      "path": "assets/audio/themes/final_battle_intro.wav",
+      "frames": 391138,
+      "rate": 48000,
+      "channels": 2,
+      "absolute_peak_code": 23478,
+      "source_authored_silent_intro": false
+    },
+    {
+      "path": "assets/audio/themes/final_battle_loop.wav",
+      "frames": 3072000,
+      "rate": 48000,
+      "channels": 2,
+      "absolute_peak_code": 32112,
+      "source_authored_silent_intro": false
+    },
+    {
+      "path": "assets/audio/themes/first_battle_intro.wav",
+      "frames": 493908,
+      "rate": 48000,
+      "channels": 2,
+      "absolute_peak_code": 25640,
+      "source_authored_silent_intro": false
+    },
+    {
+      "path": "assets/audio/themes/first_battle_loop.wav",
+      "frames": 2271549,
+      "rate": 48000,
+      "channels": 2,
+      "absolute_peak_code": 32113,
+      "source_authored_silent_intro": false
+    },
+    {
+      "path": "assets/audio/themes/link_1_intro.wav",
+      "frames": 468525,
+      "rate": 48000,
+      "channels": 2,
+      "absolute_peak_code": 30006,
+      "source_authored_silent_intro": false
+    },
+    {
+      "path": "assets/audio/themes/link_1_loop.wav",
+      "frames": 3686438,
+      "rate": 48000,
+      "channels": 2,
+      "absolute_peak_code": 32028,
+      "source_authored_silent_intro": false
+    },
+    {
+      "path": "assets/audio/themes/link_2_intro.wav",
+      "frames": 482190,
+      "rate": 48000,
+      "channels": 2,
+      "absolute_peak_code": 23705,
+      "source_authored_silent_intro": false
+    },
+    {
+      "path": "assets/audio/themes/link_2_loop.wav",
+      "frames": 3072000,
+      "rate": 48000,
+      "channels": 2,
+      "absolute_peak_code": 32112,
+      "source_authored_silent_intro": false
+    },
+    {
+      "path": "assets/audio/themes/link_3_intro.wav",
+      "frames": 444292,
+      "rate": 48000,
+      "channels": 2,
+      "absolute_peak_code": 28809,
+      "source_authored_silent_intro": false
+    },
+    {
+      "path": "assets/audio/themes/link_3_loop.wav",
+      "frames": 2608302,
+      "rate": 48000,
+      "channels": 2,
+      "absolute_peak_code": 32113,
+      "source_authored_silent_intro": false
+    },
+    {
+      "path": "assets/audio/themes/mirakle_b_intro.wav",
+      "frames": 9575,
+      "rate": 48000,
+      "channels": 2,
+      "absolute_peak_code": 0,
+      "source_authored_silent_intro": true
+    },
+    {
+      "path": "assets/audio/themes/mirakle_b_loop.wav",
+      "frames": 1970502,
+      "rate": 48000,
+      "channels": 2,
+      "absolute_peak_code": 29072,
+      "source_authored_silent_intro": false
+    },
+    {
+      "path": "assets/audio/themes/miror_b_intro.wav",
+      "frames": 9575,
+      "rate": 48000,
+      "channels": 2,
+      "absolute_peak_code": 0,
+      "source_authored_silent_intro": true
+    },
+    {
+      "path": "assets/audio/themes/miror_b_loop.wav",
+      "frames": 2235193,
+      "rate": 48000,
+      "channels": 2,
+      "absolute_peak_code": 32112,
+      "source_authored_silent_intro": false
+    },
+    {
+      "path": "assets/audio/themes/normal_battle_intro.wav",
+      "frames": 7181,
+      "rate": 48000,
+      "channels": 2,
+      "absolute_peak_code": 0,
+      "source_authored_silent_intro": true
+    },
+    {
+      "path": "assets/audio/themes/normal_battle_loop.wav",
+      "frames": 2367091,
+      "rate": 48000,
+      "channels": 2,
+      "absolute_peak_code": 32113,
+      "source_authored_silent_intro": false
+    },
+    {
+      "path": "assets/audio/themes/semifinal_intro.wav",
+      "frames": 573696,
+      "rate": 48000,
+      "channels": 2,
+      "absolute_peak_code": 24333,
+      "source_authored_silent_intro": false
+    },
+    {
+      "path": "assets/audio/themes/semifinal_loop.wav",
+      "frames": 3777049,
+      "rate": 48000,
+      "channels": 2,
+      "absolute_peak_code": 32112,
+      "source_authored_silent_intro": false
+    }
+  ]
+}

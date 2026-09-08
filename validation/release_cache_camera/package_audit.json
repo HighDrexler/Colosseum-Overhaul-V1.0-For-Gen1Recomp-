@@ -1,0 +1,74 @@
+{
+  "input_file": "Colosseum_Overhaul_v1.0_Cache_Reuse_Hotfix.zip",
+  "input_sha256": "0d4c5a58e9155d6dcf9363d4586256c6d5ddf18e74ea2345cf48790bcd311699",
+  "original_file_count": 1074,
+  "unchanged_original_files": 1064,
+  "changed_original_files": [
+    {
+      "path": "README.md",
+      "before_sha256": "31411d08d42a7d3f24885bdcf54841883164a4e6ecfae070804432e36ef8f57e",
+      "after_sha256": "a09073831010ce369a4a428e883f30f816124ca364a655aae7da9da92da2f981"
+    },
+    {
+      "path": "lib/BattleCache.lua",
+      "before_sha256": "afe1a1caf6792021c5c2bd91a7a219a19aff6a176f853b493cac0ab8f295296b",
+      "after_sha256": "2644b5dd60b6baa096c92c1decc92f959de014305f818a126da73693dd455d77"
+    },
+    {
+      "path": "lib/CacheScreen.lua",
+      "before_sha256": "35c6f7be4994a85ffdc8842e3fb170da2e9c44f1d4980f87de27c936f4f437b2",
+      "after_sha256": "c6a27d977204ca8d13e5144a3904de5e190814c1b5249edf1d201089644b9b9b"
+    },
+    {
+      "path": "lib/Camera.lua",
+      "before_sha256": "defdf40ea82a5a97b7440f3f3702766c101197a60c43880589b349e0c673a0c9",
+      "after_sha256": "786c9e2f88509b8513f55d00992e432f750185b42a687e50c8a0b456068e5f63"
+    },
+    {
+      "path": "lib/PokemonActors.lua",
+      "before_sha256": "45d7ebd075656f4b30ef82238aebcbf518e66cdd8b77549ee5cb361b7d18dd39",
+      "after_sha256": "7fd0584b9504fff3be0ed1dcff40f5b8f78344acbfae0939dc73d1f752726dc8"
+    },
+    {
+      "path": "lib/doubles/CameraDirector.lua",
+      "before_sha256": "9b31bc0bc3f2cf8f1be3c5b7f05f866d8d6ad4d36ba16604d53cf484d711fe06",
+      "after_sha256": "b8359dc867aadf3ba5aac70f55d95a8ccc8eeeb48cc1c3a9ac49e82604140a51"
+    },
+    {
+      "path": "manifest.json",
+      "before_sha256": "74c9692799e81cce80f75e5028699b56b4db4a79fe4c441abdae29d77ef7d2f8",
+      "after_sha256": "f89c84c1eadad6f8cf775ad85fcca1119864ef72968a7a34d099f9fb4dfb1d84"
+    },
+    {
+      "path": "mod.card",
+      "before_sha256": "8d768a8e3167d24a8f0c9fad7e08e083bc91133ef79c3f59a0bb57eff8d281d0",
+      "after_sha256": "9049f45b8788215ec6e648efa1dffcace4249244250263ab7205935762c574fe"
+    },
+    {
+      "path": "tests/NativeModelCacheTests.lua",
+      "before_sha256": "6ab047e09aa9f6d4d48da61b13874a7d05d8761bf9d68643fdd66e203705f49a",
+      "after_sha256": "709573d2e3ee9543336cbaa99cb185cc6c3681d2693cc14a5e9b37c7ebac6483"
+    },
+    {
+      "path": "tests/run_headless.py",
+      "before_sha256": "b3290af43cdf8fddf995027e7c55549742e71a58bf943336e8be61fdc30f3482",
+      "after_sha256": "99922f008c758406d5c779fda4a9d765731d70208a512fdbc753d8b3b19aed91"
+    }
+  ],
+  "added_files": [
+    "RELEASE_CACHE_CAMERA_1.0.md",
+    "tests/ReleaseCameraContinuityTests.lua",
+    "tests/RuntimeCacheNoScreenTests.lua",
+    "tests/SessionReadinessFastPathTests.lua",
+    "tests/lua_dll_runner.py",
+    "validation/release_cache_camera/baseline.json",
+    "validation/release_cache_camera/baseline_reproductions.txt",
+    "validation/release_cache_camera/headless.json",
+    "validation/release_cache_camera/syntax.json"
+  ],
+  "deleted_files": [],
+  "protected_asset_extractor_recipe_vendor_files": 572,
+  "protected_files_identical": true,
+  "manifest_contract_unchanged_except_description": true,
+  "note": "This audit lists files before adding itself; historical audits are retained unchanged."
+}

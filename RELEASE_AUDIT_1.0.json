@@ -1,0 +1,91 @@
+{
+  "release": "1.0",
+  "baseline_file": "Colosseum_Overhaul_v1.0.10.zip",
+  "baseline_sha256": "3772afc7931bbdf1ebc546b3ff0aea7d9cb8504af1d160ac3aed4959f422bdb5",
+  "mod_id": "COLOSSEUM_OVERHAUL",
+  "version_is_intentional_release_rename": true,
+  "baseline_files": 1038,
+  "missing_files": [],
+  "unchanged_baseline_files": 1031,
+  "unchanged_asset_count": 548,
+  "changed_baseline_files": [
+    "README.md",
+    "VALIDATION.md",
+    "lib/BattleCache.lua",
+    "main.lua",
+    "manifest.json",
+    "mod.card",
+    "tests/run_headless.py"
+  ],
+  "manifest_preserved_fields": [
+    "affects_link",
+    "api",
+    "author",
+    "category",
+    "conflicts",
+    "dependencies",
+    "entry",
+    "experimental",
+    "game_version",
+    "games",
+    "id",
+    "incompatible",
+    "name",
+    "optional_dependencies",
+    "permissions",
+    "priority",
+    "profile",
+    "required_imports"
+  ],
+  "changed_file_hashes": {
+    "README.md": {
+      "baseline": "75843465c1f843e5d167afd613e24d43fe8721be736d4f4b0337920b4acffb32",
+      "release": "4f7f7fcd6347fbe43184aa8ee9cdfd1458d2584fc2e3a4d6c23180a0a951e38c"
+    },
+    "VALIDATION.md": {
+      "baseline": "4e0ab14c874d424ebddcbd81eaa52ba62bfc8e2bf06e0ac774758bd3f8dfa690",
+      "release": "461d519cad7a9e01af0c0fca9a326bec582eec36b765764f24caa339f586c5af"
+    },
+    "lib/BattleCache.lua": {
+      "baseline": "189bdb35097ba70b1d4c2c8143e7d93d23f3b679fd7633125cbd5402ad1e9797",
+      "release": "391188f0432c7710804ad95f5029314f55787b768d06980d443898529a71fa75"
+    },
+    "main.lua": {
+      "baseline": "2b95c0b5efeef1fabc043969ad924866580a808321c9891afcc6a75bc87bf306",
+      "release": "5bfd5d0b37698af77283c79e8b061e390b29f2116120ca6b1002c2cc39a20c58"
+    },
+    "manifest.json": {
+      "baseline": "9193cbef28430ddb7912c7c95930bfadf37e9c206fc5588c9f38f95d13abb79e",
+      "release": "cadc94d146c6a37d7413a8ed5358ad244932a488190fb2a522179d9d015a65e3"
+    },
+    "mod.card": {
+      "baseline": "ac79feb500d6dd7bed8854e6eb8682fcd4618775ae2a20c62c6729724f8cb908",
+      "release": "c1c0d732a17409e4c2c0784172b2a10b98cba3e2ba2d733035c0101816deabaa"
+    },
+    "tests/run_headless.py": {
+      "baseline": "743f2b6a3fba4c3edb4931b161acd821c6ecd7c4c6c6e23c9c40a6eafb03d93b",
+      "release": "bedf47a2cc94e5042c91339a89e88c8469097e9c05c410aaa6f9e950a49879ab"
+    }
+  },
+  "added_file_hashes": {
+    "CHANGELOG_1.0.md": "95dd3dab7ef2dc2317dc7e2e553e83414ff72e48e7884960b7c544e28af6f136",
+    "VALIDATION_1.0.md": "5254b173c32c1145873347244245a4f0be51dbda9e31a959e56170841b019282",
+    "docs/history/VALIDATION_PRE_RELEASE_1.0.4.md": "4e0ab14c874d424ebddcbd81eaa52ba62bfc8e2bf06e0ac774758bd3f8dfa690",
+    "tests/ReleaseLifecycleCompatibilityTests.lua": "28cb178876e617ddcd987fc5641bb63676df9927312cfe385dbbcef723174da9",
+    "validation/release_1_0/baseline_lifecycle_reproduction.log": "1a0480d039c4cc77cc2a410ecab02a1c98b66d285f91444bc6be6f6803581546",
+    "validation/release_1_0/baseline_texlua.json": "2c6d12d50012598afb5ff071e3f969c8c4eaca115b1ec880144e87e9ce47731f",
+    "validation/release_1_0/doubles_luajit.log": "1be385675392f0da60278acce6d4790317f40f0e1d9a13442bdc99a7817038e3",
+    "validation/release_1_0/doubles_texlua.log": "1be385675392f0da60278acce6d4790317f40f0e1d9a13442bdc99a7817038e3",
+    "validation/release_1_0/gen1.log": "15a6d202ed4c66571a6c9bb990b1113bfab5e9d9f98081d711953a95c6a0d31e",
+    "validation/release_1_0/gen2.log": "562fab39feea0ffc3635aaacb5cf09e08da9568f5ee3264d812c86ad92459e3c",
+    "validation/release_1_0/native_manifest.log": "17085586c5b0b6a399f685b8747e86092a8087a134792b1c88e07547ce14f127",
+    "validation/release_1_0/portraits.log": "9a0a2dd574b9777b54a34731bb0f9681282e161c3b76752408cc5a7dc17079b9",
+    "validation/release_1_0/source_cold_baseline.log": "93a7670b10d1ea0f3df50a8f429fb38275713ac2147422e3d9a44ce7597f5f6b",
+    "validation/release_1_0/source_warm_release.log": "53c5f124f0344098dca23f542b0639dd3e2d8a98cff2668d4782560389af4109",
+    "validation/release_1_0/syntax.json": "bafbe4a0573ce176fb798e3fe0bf61d7ee4aa864a607c0a4494ce6d9c8b65682",
+    "validation/release_1_0/working_luajit.json": "2754f0805e7209791d78d37d18a7c003af398eaa1594915014dec5f37c8ee598",
+    "validation/release_1_0/working_texlua.json": "b88bb4e3edb07aedbccd993e2a4bb7712834f8d78572a83d65e0aec07f096b32"
+  },
+  "scope": "Only BattleCache.lua implementation plus release metadata/documentation/test wiring changes. No extraction, audio, renderer, battle, source/cache-epoch, quota or asset changes.",
+  "audit_self_excluded": true
+}

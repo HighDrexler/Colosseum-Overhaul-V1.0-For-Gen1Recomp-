@@ -1,0 +1,3 @@
+# CBE 1.9.4-information-ui-motion-cache.1
+
+This pass targets information-surface latency and animation only. Generated Pokémon model scenes remain shared and resident exactly as in 1.9.3. PC/Summary/Pokédex actors now avoid source-disc PKX metadata discovery when the small metadata sidecar is absent; a later battle actor is still allowed to perform that authoritative read. Information actors also upgrade the already-visible actor to only the cached idle bank when the compact base scene does not already contain morph samples, restoring source idle animation without warming attack/damage/faint banks.

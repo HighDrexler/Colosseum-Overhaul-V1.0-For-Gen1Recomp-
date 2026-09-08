@@ -1,0 +1,103 @@
+{
+  "added_excluding_this_audit": {
+    "CHANGELOG_1.0.8.md": "427f393e6be291a76b9a9b8fb517ed3950741b55df980f192db32eaaad0643f0",
+    "VALIDATION_1.0.8.md": "ef6baa7717ec2fb08ced375ce10f9eed119e9602e97950dbb59d863eb134411d",
+    "lib/BattleCache.lua": "22ed93f355b12a0891f39ea6907c42220fc67de44cd2a991a9e256d85db84436",
+    "lib/ModelIdentity.lua": "066efd84aded01dd98663b812512797c4531aaecd2e757e76290a6d5bbcd9056",
+    "tests/NativeModelCacheTests.lua": "77b299777c904102f51fc1f78d20ff4d54052761a0a685a51eb856e3ae66cb0d",
+    "tests/SessionModelCacheTests.lua": "4357f5935a0bc3f28bb52a0983bc8afde2fd28f374399f2e1d134e6f919f2ef0",
+    "tests/StrictUIRoutingTests.lua": "d08a8a919313c1ac9b6817a6fa97114e25c5dfa9d5adb11b2ca2ba1f486f5af8",
+    "tests/retail/ModelCacheSourceChecks.lua": "d502aa23152b27cedae37e8c0ab6e08b7e944036af11630b4e0aabafbeedc762",
+    "validation/model_cache_v1/final_working.json": "e4113fc2c86092d5883998b82e741caa0daf29c1ef14fd5bf507e2b0053bebc8",
+    "validation/model_cache_v1/final_working.log": "5ac5b4b29adde5bfb0b7cb7212c035683daf13ae56a5c578738e2542deb42c7e",
+    "validation/model_cache_v1/native_doubles.log": "1be385675392f0da60278acce6d4790317f40f0e1d9a13442bdc99a7817038e3",
+    "validation/model_cache_v1/source.log": "c0b1076da4cff6ef8b8de4c64d4895963acb09176fe66018430a88b31711f62b",
+    "validation/model_cache_v1/syntax.json": "d6e0f37b8dd5c240740426e345c0cb6fa3030f4e975df5c50fe54af566685e26"
+  },
+  "baseline": {
+    "file_count": 987,
+    "name": "Colosseum_Overhaul_v1.0.7(1).zip",
+    "sha256": "784fbf3405a27bbb43e30b7de6464973aa5bdea5914c60cc1fd600d8e7aa4868"
+  },
+  "changed": {
+    "README.md": {
+      "after": "b07f5ee698053ad559057625a0c0eb5fc6d44ba99c05eb9e01f41160ceccb9db",
+      "before": "0e2aa21cee7176a1af4b67bd5f99e5a84b16a07a09ca5138db0dfe55d84a1966"
+    },
+    "UIMain.lua": {
+      "after": "5d55a32d97d8677c944b620a460aee066e82ee5188ede257a0217b2135e0be24",
+      "before": "4f4e4401012d79ef1fd101b76d2a42c5940910c49c5f8b6ee34a370ed515bee9"
+    },
+    "lib/CurrentSpriteModels.lua": {
+      "after": "1e2e645b5357c7745a41e18eedbe7eef357e49462fc1ceb1ea06265c606c00cf",
+      "before": "07b5a422ac178a09e775c3fa5f19ea0fce0d7d38e371500de49a8dd681c7260d"
+    },
+    "lib/PokemonActors.lua": {
+      "after": "f36db9588bda9c4392c039c5b9a6822cbda9b7743a164f555c8e6c8b08c3b694",
+      "before": "4bcfd27db6c1f6454181ea24e85f8c3e704731cfdf68708b830ac3edb134edb6"
+    },
+    "lib/doubles/Presenter.lua": {
+      "after": "e00dd901dcc390882bf3a4483529843ef36aee62e96f2a2b24f10810ac835e54",
+      "before": "3fc72038be9a1cfd0df367dddc5578923843de738cc80b4b4ac7bd63bf8aecdd"
+    },
+    "main.lua": {
+      "after": "4a2cbc03ae5565f1f38b57f73210a6eb3dcac0e1b3a16f54d6076b0708b2165c",
+      "before": "423d102dc37bf165d2724581586d9bd26f4e89aef3753bd1802b6487bcfaf266"
+    },
+    "manifest.json": {
+      "after": "5e5d804fedd6ff581484e0758b38fbd5378f1fa26b1692f26d07c9c8e746c31d",
+      "before": "7d23a7fcdde65a69f775f4114b39531706ae9ce9a46e02bfdf375ad80e805599"
+    },
+    "mod.card": {
+      "after": "ff38a6cdc9a082c56ba7f212d11768c8c6807f2c7aad9f2f3b68df702e4e02de",
+      "before": "e987b887422a69861c52600dab1e6a72cf2c17532fea9afed788e8d7f9ad18c2"
+    },
+    "tests/ShinyDoublesPresentationTests.lua": {
+      "after": "355a72bc62935bf6a73067061cd5af4552434ceb6a6221cc0e5c0a1032145d84",
+      "before": "52530421def4f626fa3d0e051f180671b6da2da85d5d4377437e53da663cb0c6"
+    },
+    "tests/ShinyUIPipelineTests.lua": {
+      "after": "241832a9a169a22777423c494571ed5ecc7c093e4d36d966f8fc80eed7dfefb1",
+      "before": "51d7e0643d892debec417fcec3da3459763277358d6fae969f2a670e95ab1d52"
+    },
+    "tests/run_headless.py": {
+      "after": "743f2b6a3fba4c3edb4931b161acd821c6ecd7c4c6c6e23c9c40a6eafb03d93b",
+      "before": "7c8ad4121485c2c7db5833da15b9d470875cc74452b846f0a83d99be982da3b4"
+    }
+  },
+  "protected_files_unchanged": [
+    "extract/ArenaBuilder.lua",
+    "extract/AudioFidelityBuilder.lua",
+    "extract/AudioProbe.lua",
+    "extract/AudioWorker.lua",
+    "extract/BattleAudioBuilder.lua",
+    "extract/BuildPipeline.lua",
+    "extract/CameraProbe.lua",
+    "extract/FSYS.lua",
+    "extract/FormatProbe.lua",
+    "extract/GXTexture.lua",
+    "extract/GameCubeDisc.lua",
+    "extract/HSD.lua",
+    "extract/MoveFXExtractor.lua",
+    "extract/PKXMetadata.lua",
+    "extract/PokemonExtractor.lua",
+    "extract/PortableMusyX.lua",
+    "extract/TrainerExtractor.lua",
+    "extract/TransitionBuilder.lua",
+    "extract/WazaSequenceExtractor.lua",
+    "extract/WazaSfxBuilder.lua",
+    "lib/BattleAudio.lua",
+    "lib/ColosseumDex.lua",
+    "lib/PlayerTrainer.lua",
+    "lib/ShinySupport.lua",
+    "lib/Trainer.lua",
+    "lib/TrainerPerformance.lua",
+    "recipes/arenas/mt_battle_summit.lua",
+    "recipes/arenas/outdoor_wild.lua"
+  ],
+  "removed": [],
+  "scope": "Complete combined package, same mod ID/import/cache namespace. No source media or new generated runtime assets.",
+  "unchanged_asset_count": 548,
+  "unchanged_file_count": 976,
+  "version": "1.0.8"
+}

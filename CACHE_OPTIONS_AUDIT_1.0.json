@@ -1,0 +1,78 @@
+{
+  "baseline_file": "Colosseum_Overhaul_v1.0.zip",
+  "baseline_sha256": "0be5e426ef12e7008590e24d4acb49942d9143b3d04d89364a6cdf6659dc8db8",
+  "release_label": "1.0",
+  "variant": "cache-options-hotfix",
+  "removed": [],
+  "unchanged_assets": 548,
+  "unchanged_files": 1043,
+  "changed": {
+    "mod.card": {
+      "before": "c1c0d732a17409e4c2c0784172b2a10b98cba3e2ba2d733035c0101816deabaa",
+      "after": "8d768a8e3167d24a8f0c9fad7e08e083bc91133ef79c3f59a0bb57eff8d281d0"
+    },
+    "README.md": {
+      "before": "4f7f7fcd6347fbe43184aa8ee9cdfd1458d2584fc2e3a4d6c23180a0a951e38c",
+      "after": "31411d08d42a7d3f24885bdcf54841883164a4e6ecfae070804432e36ef8f57e"
+    },
+    "manifest.json": {
+      "before": "cadc94d146c6a37d7413a8ed5358ad244932a488190fb2a522179d9d015a65e3",
+      "after": "ad22078ebc4207c0790817e54daab645b2aaddfbe55327d67f1bd9f97aa2380b"
+    },
+    "VALIDATION.md": {
+      "before": "461d519cad7a9e01af0c0fca9a326bec582eec36b765764f24caa339f586c5af",
+      "after": "258f159fc325c312f70a0e3c883dff31172bf694eee06b99fa6cb16febe9f20f"
+    },
+    "main.lua": {
+      "before": "5bfd5d0b37698af77283c79e8b061e390b29f2116120ca6b1002c2cc39a20c58",
+      "after": "3d2d0b3b8356b5e2671a1549c6f94db46e918d1346cb5b9ae55c02ccebc3198f"
+    },
+    "tests/CacheScreenLayoutTests.lua": {
+      "before": "eb5ecee19e2fdac44cf62457a15229295da6881cfb2b5f46749042ed04ef8825",
+      "after": "30ff513fc6d7dee5ba84b6513c749104915e07d7b70aeec8cc79061226ee36ee"
+    },
+    "tests/NativeModelCacheTests.lua": {
+      "before": "f298fe91a4c3e441bb5148bbd6514709c3bfa042d60a3de5f31b1566c085620d",
+      "after": "6ab047e09aa9f6d4d48da61b13874a7d05d8761bf9d68643fdd66e203705f49a"
+    },
+    "tests/run_headless.py": {
+      "before": "bedf47a2cc94e5042c91339a89e88c8469097e9c05c410aaa6f9e950a49879ab",
+      "after": "b3290af43cdf8fddf995027e7c55549742e71a58bf943336e8be61fdc30f3482"
+    },
+    "tests/ReleaseLifecycleCompatibilityTests.lua": {
+      "before": "28cb178876e617ddcd987fc5641bb63676df9927312cfe385dbbcef723174da9",
+      "after": "56af0606d391a031647b36b5ade043855b5e48af2f5993c9091e83f35e65de26"
+    },
+    "lib/BattleCache.lua": {
+      "before": "391188f0432c7710804ad95f5029314f55787b768d06980d443898529a71fa75",
+      "after": "ee641969883c7aa1e5c497eaa0073c7303161a9ad8a83b92dda737ec646b8bb4"
+    },
+    "lib/CacheScreen.lua": {
+      "before": "e750a04cefe01f677629b548e8cc1ffedf118543638bd95176db91d594100c82",
+      "after": "f7eae2eb3d3608037fc091c53ee14d553da59e519c868893d6265bd657eefc4d"
+    },
+    "tests/retail/cache_screen_love/conf.lua": {
+      "before": "07a1c9376871dd3317d12fd1636c348b39c98f84af4c22031339c4bb26efe870",
+      "after": "b25edda68a315866da613e9e01562d9e9ec72dd8486f5e30511de2e5c0f820f7"
+    },
+    "tests/retail/cache_screen_love/main.lua": {
+      "before": "99c3ea0710ee23d88f331226e10ad09bd5fc870d0efa313fa95b073d3a24014a",
+      "after": "4a1d27de0f7720ea9bcf36d90d171bfa3253f70e413269c165c71b881f60ad4b"
+    }
+  },
+  "added": {
+    "CHANGELOG_CACHE_OPTIONS_1.0.md": "adf42a99acddc7335daaa68c9674ddc4f3cc3c4a9179cc54c64e17afffaac9ea",
+    "VALIDATION_CACHE_OPTIONS_1.0.md": "c138b03228c70475452675a423b74408b82f68ed47e3cb09e017614f23ca98bc",
+    "tests/CacheChoiceConsentTests.lua": "214763ac4ce380b74746cd5c5e85e1fd3b7262d2703efe355b831b9e88fdd2ba",
+    "validation/cache_options_1_0/baseline_reproduction.log": "a6544ffa54a4e6d3839de3bc46732db8cd0de571721d0e2720ebf820aa677bec",
+    "validation/cache_options_1_0/doubles_luajit.log": "1be385675392f0da60278acce6d4790317f40f0e1d9a13442bdc99a7817038e3",
+    "validation/cache_options_1_0/doubles_texlua.log": "1be385675392f0da60278acce6d4790317f40f0e1d9a13442bdc99a7817038e3",
+    "validation/cache_options_1_0/luajit.json": "70846cc6ad3cc8a719a9d4dd21d67a1d92549d253a42d7aa4deebdb5de3474e0",
+    "validation/cache_options_1_0/luajit.log": "5371210db9f8fcb920b10dcce87b0bea1879d57a2f921b37db3243245fda8561",
+    "validation/cache_options_1_0/syntax.json": "f7de969d67f2e27cc33514ca6a568e58d0c42d52f316028e2e34cae8d1c3449f",
+    "validation/cache_options_1_0/texlua.json": "bf8ad812d8c885459799acc1b3126054688bedbffe4e035f22aebaabecee6aef",
+    "validation/cache_options_1_0/texlua.log": "5371210db9f8fcb920b10dcce87b0bea1879d57a2f921b37db3243245fda8561"
+  },
+  "manifest_compatibility_fields_unchanged": true,
+  "catalog_background_baking_added": false
+}

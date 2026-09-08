@@ -1,0 +1,4 @@
+cold dex=100 variant=normal cpu=0.031 slices=2 bytesWritten=0
+cold dex=25 variant=shiny cpu=0.192 slices=6 bytesWritten=0
+cold dex=157 variant=shiny cpu=10.466 slices=762 bytesWritten=79342384
+PASS cold writes=543 bytes=79342384 sourceOpens=1 cacheReads=463 readBytes=69057266; graphics mocked

@@ -1,0 +1,525 @@
+{
+  "counts": {
+    "pass": 85,
+    "fail": 0,
+    "not_run": 1,
+    "timeout": 0
+  },
+  "results": [
+    {
+      "file": "AbilitiesResolverTests.lua",
+      "status": "pass",
+      "seconds": 0.006,
+      "log": "AbilitiesResolverTests: dual-ability spread, determinism, ensure() idempotency, labels, enabled() OK"
+    },
+    {
+      "file": "AbilityBridgeTests.lua",
+      "status": "pass",
+      "seconds": 0.011,
+      "log": "AbilityBridgeTests: 36 assertions PASS"
+    },
+    {
+      "file": "AbilityDataTests.lua",
+      "status": "pass",
+      "seconds": 0.005,
+      "log": "AbilityDataTests: 251 species (94 dual, 157 single), 62 abilities, 79 contact moves OK"
+    },
+    {
+      "file": "AbilityEffectsGen1Tests.lua",
+      "status": "pass",
+      "seconds": 0.005,
+      "log": "AbilityEffectsGen1Tests: 17 wrapper contracts PASS; native mechanics covered by the native suite"
+    },
+    {
+      "file": "AbilityEffectsGen2Tests.lua",
+      "status": "pass",
+      "seconds": 0.006,
+      "log": "AbilityEffectsGen2Tests: 20 wrapper contracts PASS; native mechanics covered by the native suite"
+    },
+    {
+      "file": "AbilityGenerationBoundaryTests.lua",
+      "status": "pass",
+      "seconds": 0.007,
+      "log": "AbilityGenerationBoundaryTests: 6 assertions PASS"
+    },
+    {
+      "file": "AbilityWeatherTests.lua",
+      "status": "pass",
+      "seconds": 0.006,
+      "log": "AbilityWeatherTests: Gen I/II set/get/tick, ability-locked persistence, Cloud Nine suppression, speed/accuracy multipliers, sandstorm chip OK"
+    },
+    {
+      "file": "ArenaExpansionParityTests.lua",
+      "status": "pass",
+      "seconds": 0.006,
+      "log": "ArenaExpansionParityTests PASS"
+    },
+    {
+      "file": "ArenaFidelity1925Tests.lua",
+      "status": "pass",
+      "seconds": 0.005,
+      "log": "ArenaFidelity1925Tests PASS"
+    },
+    {
+      "file": "ArenaMoveFXIntegrationTests.lua",
+      "status": "pass",
+      "seconds": 0.01,
+      "log": "ArenaMoveFXIntegrationTests: 54 assertions passed"
+    },
+    {
+      "file": "ArenaSourceIntegrationTests.lua",
+      "status": "pass",
+      "seconds": 0.01,
+      "log": "ArenaSourceIntegrationTests: 228 assertions passed"
+    },
+    {
+      "file": "ArenaVisibilityRegressionTests.lua",
+      "status": "pass",
+      "seconds": 0.011,
+      "log": "ArenaVisibilityRegressionTests: 23 checks passed"
+    },
+    {
+      "file": "AudioParityContractTests.lua",
+      "status": "pass",
+      "seconds": 0.007,
+      "log": ""
+    },
+    {
+      "file": "BattleAnimationRegression1929Tests.lua",
+      "status": "pass",
+      "seconds": 0.005,
+      "log": "BattleAnimationRegression1929Tests PASS"
+    },
+    {
+      "file": "BattleAudioCacheTests.lua",
+      "status": "pass",
+      "seconds": 0.017,
+      "log": "BattleAudioCacheTests: 43 assertions passed"
+    },
+    {
+      "file": "BattleAudioNativeTests.lua",
+      "status": "pass",
+      "seconds": 0.053,
+      "log": "BattleAudioNativeTests: 47 assertions passed"
+    },
+    {
+      "file": "BattleAudioRuntimeTests.lua",
+      "status": "pass",
+      "seconds": 0.007,
+      "log": "BattleAudioRuntimeTests: 71 assertions passed"
+    },
+    {
+      "file": "BattleAutoProgressTests.lua",
+      "status": "pass",
+      "seconds": 0.007,
+      "log": "BattleAutoProgressTests: wall clock, readable pages, prompts, choice/menu guards, animation gates and input restoration OK"
+    },
+    {
+      "file": "BattleExitBoundaryTests.lua",
+      "status": "pass",
+      "seconds": 0.006,
+      "log": ""
+    },
+    {
+      "file": "BattleFieldVisibilityTests.lua",
+      "status": "pass",
+      "seconds": 0.01,
+      "log": "BattleFieldVisibilityTests: 58 assertions passed"
+    },
+    {
+      "file": "BossIntroCueTests.lua",
+      "status": "pass",
+      "seconds": 0.005,
+      "log": "BossIntroCueTests: OK"
+    },
+    {
+      "file": "CachePreparationScopeTests.lua",
+      "status": "pass",
+      "seconds": 0.01,
+      "log": "CachePreparationScopeTests: 26 checks passed"
+    },
+    {
+      "file": "CameraFXTests.lua",
+      "status": "pass",
+      "seconds": 0.017,
+      "log": "CameraFXTests: mouse/touch handoff, UI boundaries, once-per-release cries, 11 arenas / 88 directed doubles pairs, attachment heights and spread framing PASS"
+    },
+    {
+      "file": "DeepColosseumFidelity1930Tests.lua",
+      "status": "pass",
+      "seconds": 0.006,
+      "log": "DeepColosseumFidelity1930Tests PASS"
+    },
+    {
+      "file": "DoublesCameraDirectorTests.lua",
+      "status": "pass",
+      "seconds": 0.016,
+      "log": "DoublesCameraDirectorTests: 134 checks passed (finite-frame workload included)"
+    },
+    {
+      "file": "DoublesCoherentPresentationTests.lua",
+      "status": "pass",
+      "seconds": 0.013,
+      "log": "DoublesCoherentPresentationTests: 79 assertions passed"
+    },
+    {
+      "file": "DoublesCoordinatesTests.lua",
+      "status": "pass",
+      "seconds": 0.008,
+      "log": "DoublesCoordinatesTests: 11 maps, four slots each; throw, mesh, particles and reveal camera agree"
+    },
+    {
+      "file": "DoublesDisplayCompatTests.lua",
+      "status": "not_run",
+      "reason": "Original cbe1/cbe2/cbe3 producer fixtures are not packaged; no substitute fixtures were fabricated."
+    },
+    {
+      "file": "DoublesEncounterIsolationTests.lua",
+      "status": "pass",
+      "seconds": 0.006,
+      "log": "DoublesEncounterIsolationTests: 37 assertions passed"
+    },
+    {
+      "file": "DoublesImpactAlignmentTests.lua",
+      "status": "pass",
+      "seconds": 0.027,
+      "log": "DoublesImpactAlignmentTests: 29 assertions passed; 1000-frame ribbon workload"
+    },
+    {
+      "file": "DoublesItemUITests.lua",
+      "status": "pass",
+      "seconds": 0.009,
+      "log": "DoublesItemUITests: 116 assertions passed"
+    },
+    {
+      "file": "DoublesMovePresentationTests.lua",
+      "status": "pass",
+      "seconds": 0.009,
+      "log": "DoublesMovePresentationTests: attack, delayed source FX, impact, audio fallback, holds and scoped identities OK"
+    },
+    {
+      "file": "DoublesOpponentHudOrderTests.lua",
+      "status": "pass",
+      "seconds": 0.011,
+      "log": "DoublesOpponentHudOrderTests: 767 assertions passed"
+    },
+    {
+      "file": "DoublesPerformanceTests.lua",
+      "status": "pass",
+      "seconds": 0.008,
+      "log": "DoublesPerformanceTests: 26 assertions passed"
+    },
+    {
+      "file": "DoublesPerformanceUITests.lua",
+      "status": "pass",
+      "seconds": 0.007,
+      "log": "DoublesPerformanceUITests: 14 assertions passed"
+    },
+    {
+      "file": "DoublesSendoutTests.lua",
+      "status": "pass",
+      "seconds": 0.006,
+      "log": "DoublesSendoutTests: OK\nGrouped opening throw counts: OK"
+    },
+    {
+      "file": "DoublesSourceTimingIntegrationTests.lua",
+      "status": "pass",
+      "seconds": 0.009,
+      "log": "DoublesSourceTimingIntegrationTests: 21 assertions passed"
+    },
+    {
+      "file": "ExtractorDecodeEconomyTests.lua",
+      "status": "pass",
+      "seconds": 0.007,
+      "log": "ExtractorDecodeEconomyTests: 111 checks passed"
+    },
+    {
+      "file": "FreeCameraLayerTests.lua",
+      "status": "pass",
+      "seconds": 0.006,
+      "log": "FreeCameraLayerTests: 57 checks passed; mouse/touch/engine inputs simulated"
+    },
+    {
+      "file": "HSDScaleTests.lua",
+      "status": "pass",
+      "seconds": 0.007,
+      "log": ""
+    },
+    {
+      "file": "HardCacheStorageQueueTests.lua",
+      "status": "pass",
+      "seconds": 0.008,
+      "log": "HardCacheStorageQueueTests: OK"
+    },
+    {
+      "file": "InformationMenuPerformanceTests.lua",
+      "status": "pass",
+      "seconds": 0.005,
+      "log": "InformationMenuPerformanceTests: OK"
+    },
+    {
+      "file": "MenuPrewarmBoundaryTests.lua",
+      "status": "pass",
+      "seconds": 0.005,
+      "log": "MenuPrewarmBoundaryTests: OK"
+    },
+    {
+      "file": "MoveFXAttackHandoffTests.lua",
+      "status": "pass",
+      "seconds": 0.007,
+      "log": ""
+    },
+    {
+      "file": "MoveFXCacheReuseTests.lua",
+      "status": "pass",
+      "seconds": 0.007,
+      "log": "MoveFXCacheReuseTests: OK"
+    },
+    {
+      "file": "MoveFXNativeIdentityTests.lua",
+      "status": "pass",
+      "seconds": 0.109,
+      "log": "MoveFXNativeIdentityTests: 251 cold-cache native indices, named Ice Beam/Hydro Pump, exact stem and unknown move OK"
+    },
+    {
+      "file": "MoveFXRetailParticleRuntimeTests.lua",
+      "status": "pass",
+      "seconds": 0.007,
+      "log": "MoveFXRetailParticleRuntimeTests: OK"
+    },
+    {
+      "file": "MoveFXSourceChainTests.lua",
+      "status": "pass",
+      "seconds": 0.051,
+      "log": ""
+    },
+    {
+      "file": "MoveFXSweepTests.lua",
+      "status": "pass",
+      "seconds": 0.045,
+      "log": "MoveFXSweepTests: OK"
+    },
+    {
+      "file": "MoveFXTransitRegressionTests.lua",
+      "status": "pass",
+      "seconds": 0.022,
+      "log": "MoveFXTransitRegressionTests: 100 assertions passed"
+    },
+    {
+      "file": "MovePresentationTests.lua",
+      "status": "pass",
+      "seconds": 0.008,
+      "log": "PASS: moving emitter, independent particles, joint-follow ownership, held launch and damage cut"
+    },
+    {
+      "file": "ParticleIntensityAlphaTests.lua",
+      "status": "pass",
+      "seconds": 0.007,
+      "log": "ParticleIntensityAlphaTests: 22 assertions passed"
+    },
+    {
+      "file": "PerformanceFrameBudgetTests.lua",
+      "status": "pass",
+      "seconds": 0.005,
+      "log": "PerformanceFrameBudgetTests: 46 checks passed"
+    },
+    {
+      "file": "PerformanceInformationLoadingTests.lua",
+      "status": "pass",
+      "seconds": 0.04,
+      "log": "PerformanceInformationLoadingTests: 52 checks passed"
+    },
+    {
+      "file": "PokemonPresentationIntegrityTests.lua",
+      "status": "pass",
+      "seconds": 0.011,
+      "log": "PokemonPresentationIntegrityTests PASS"
+    },
+    {
+      "file": "PokemonReactionQueueTests.lua",
+      "status": "pass",
+      "seconds": 0.008,
+      "log": ""
+    },
+    {
+      "file": "PyriteCameraSafetyTests.lua",
+      "status": "pass",
+      "seconds": 0.006,
+      "log": "PyriteCameraSafetyTests PASS"
+    },
+    {
+      "file": "ReleaseDefaultsAndBallOrientationTests.lua",
+      "status": "pass",
+      "seconds": 0.006,
+      "log": "ReleaseDefaultsAndBallOrientationTests: 66 checks passed; synthetic stage transforms"
+    },
+    {
+      "file": "ReleasePresentationTests.lua",
+      "status": "pass",
+      "seconds": 0.005,
+      "log": "ReleasePresentationTests: source timing, one-shot launch, slot geometry and cleanup OK"
+    },
+    {
+      "file": "RelicCameraSafetyTests.lua",
+      "status": "pass",
+      "seconds": 0.008,
+      "log": "RelicCameraSafetyTests PASS"
+    },
+    {
+      "file": "RelicChamberArenaTests.lua",
+      "status": "pass",
+      "seconds": 0.005,
+      "log": "RelicChamberArenaTests PASS"
+    },
+    {
+      "file": "RelicForest360Fidelity1928Tests.lua",
+      "status": "pass",
+      "seconds": 0.005,
+      "log": "RelicForest360Fidelity1928Tests PASS"
+    },
+    {
+      "file": "RelicOutskirtsLock1927Tests.lua",
+      "status": "pass",
+      "seconds": 0.007,
+      "log": "RelicOutskirtsLock1927Tests PASS"
+    },
+    {
+      "file": "RelicOutskirtsPresentationTests.lua",
+      "status": "pass",
+      "seconds": 0.005,
+      "log": "RelicOutskirtsPresentationTests PASS"
+    },
+    {
+      "file": "RelicPresentationCleanupTests.lua",
+      "status": "pass",
+      "seconds": 0.005,
+      "log": "RelicPresentationCleanupTests PASS"
+    },
+    {
+      "file": "RelicRetailSource1926Tests.lua",
+      "status": "pass",
+      "seconds": 0.007,
+      "log": "RelicRetailSource1926Tests PASS"
+    },
+    {
+      "file": "RelicVisualFidelity1931Tests.lua",
+      "status": "pass",
+      "seconds": 0.005,
+      "log": "RelicVisualFidelity1931Tests PASS"
+    },
+    {
+      "file": "ShinyActorCacheTests.lua",
+      "status": "pass",
+      "seconds": 0.029,
+      "log": "ShinyActorCacheTests: 1036 checks passed; GPU objects are mocks"
+    },
+    {
+      "file": "ShinyDoublesPresentationTests.lua",
+      "status": "pass",
+      "seconds": 0.018,
+      "log": "ShinyDoublesPresentationTests: 21 checks passed; four active slots, mocked GPU"
+    },
+    {
+      "file": "ShinyExtractorContractTests.lua",
+      "status": "pass",
+      "seconds": 0.011,
+      "log": "ShinyExtractorContractTests: 547 checks passed; cache paths and synthetic metadata/source reader"
+    },
+    {
+      "file": "ShinyHardCacheTests.lua",
+      "status": "pass",
+      "seconds": 0.016,
+      "log": "ShinyHardCacheTests: 17 checks passed; synthetic geometry, real binary pack/cache pipeline"
+    },
+    {
+      "file": "ShinyIdentityAndMetadataTests.lua",
+      "status": "pass",
+      "seconds": 0.007,
+      "log": "ShinyIdentityAndMetadataTests: 1827 checks passed; synthetic PKX only"
+    },
+    {
+      "file": "ShinyInformationSchedulerTests.lua",
+      "status": "pass",
+      "seconds": 0.008,
+      "log": "ShinyInformationSchedulerTests: 11 checks passed; simulated Android slices"
+    },
+    {
+      "file": "ShinyUIPipelineTests.lua",
+      "status": "pass",
+      "seconds": 0.008,
+      "log": "ShinyUIPipelineTests: 53 checks passed; extracted shipped functions with UI mocks"
+    },
+    {
+      "file": "SingleBattleSwitchUITests.lua",
+      "status": "pass",
+      "seconds": 0.094,
+      "log": "SingleBattleSwitchUITests: 349 assertions passed (real engine queue/ChoiceBox/PartyMenu; instrumented graphics)"
+    },
+    {
+      "file": "TrainerBallReleaseTests.lua",
+      "status": "pass",
+      "seconds": 0.009,
+      "log": "Trainer ball tests passed\nEnemy source hand tests passed\nDoubles trainer ball target tests passed"
+    },
+    {
+      "file": "TrainerClockReactionTests.lua",
+      "status": "pass",
+      "seconds": 0.007,
+      "log": "Trainer wall clock, reaction and throw recovery tests passed"
+    },
+    {
+      "file": "TrainerIdleContinuityTests.lua",
+      "status": "pass",
+      "seconds": 0.011,
+      "log": "Trainer idle continuity tests passed"
+    },
+    {
+      "file": "TrainerNativeTrackTests.lua",
+      "status": "pass",
+      "seconds": 0.006,
+      "log": "Trainer native track interpolation tests passed"
+    },
+    {
+      "file": "TrainerReactionEventsTests.lua",
+      "status": "pass",
+      "seconds": 0.011,
+      "log": "Player/enemy reaction event routing tests passed"
+    },
+    {
+      "file": "TrainerSendoutCameraTests.lua",
+      "status": "pass",
+      "seconds": 0.007,
+      "log": "Trainer sendout camera tests passed"
+    },
+    {
+      "file": "TrainerSourceCacheTests.lua",
+      "status": "pass",
+      "seconds": 0.015,
+      "log": "TrainerSourceCacheTests: OK"
+    },
+    {
+      "file": "TrainerStreamingTests.lua",
+      "status": "pass",
+      "seconds": 0.008,
+      "log": "PASS: aliased clip reads 5->1; repeated resident reads 1->0; advancing idle uploads 3->1 per group"
+    },
+    {
+      "file": "UIThemeSettingsTests.lua",
+      "status": "pass",
+      "seconds": 0.028,
+      "log": "UIThemeSettingsTests: 9584 assertions passed; 20,000 warm color calls created zero new shades."
+    },
+    {
+      "file": "UIVisualCacheTests.lua",
+      "status": "pass",
+      "seconds": 0.011,
+      "log": "UIVisualCacheTests: 9057 assertions passed; 9 quads for 9000 draws"
+    },
+    {
+      "file": "WazaSfxMappingTests.lua",
+      "status": "pass",
+      "seconds": 0.017,
+      "log": ""
+    }
+  ]
+}

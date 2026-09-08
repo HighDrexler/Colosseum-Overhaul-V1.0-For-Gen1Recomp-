@@ -1,0 +1,6 @@
+# Preserve the supplied release bytes in checkouts and GitHub ZIP downloads.
+* -text
+
+# Repository metadata is not needed by the mod installer.
+.gitattributes export-ignore
+.gitignore export-ignore

@@ -1,0 +1,9 @@
+{
+  "runtime": "Installed LOVE LuaJIT lua51.dll",
+  "files": 226,
+  "excluded": [
+    "tests/texlua_wrapper.lua (explicit Lua 5.3-only test launcher; not runtime mod code)"
+  ],
+  "exit_code": 0,
+  "log": "Lua files checked: 226; errors: 0\n"
+}

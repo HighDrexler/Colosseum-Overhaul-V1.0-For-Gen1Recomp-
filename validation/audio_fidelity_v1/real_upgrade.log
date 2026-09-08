@@ -1,0 +1,34 @@
+RENDER	setup=51	cpu=5.158940	frames=2412544	peak=1.338594755	clipped=333	loopStart=7181	loopEnd=2374272
+AUDIO FIDELITY / 1 OF 16 READY
+RENDER	setup=4	cpu=5.268886	frames=2829312	peak=1.321661528	clipped=171	loopStart=493908	loopEnd=2765457
+AUDIO FIDELITY / 2 OF 16 READY
+RENDER	setup=72	cpu=8.494850	frames=3859456	peak=1.279191857	clipped=133	loopStart=322765	loopEnd=3794546
+AUDIO FIDELITY / 3 OF 16 READY
+RENDER	setup=65	cpu=2.432120	frames=2299904	peak=1.086769072	clipped=10	loopStart=9575	loopEnd=2244768
+AUDIO FIDELITY / 4 OF 16 READY
+RENDER	setup=49	cpu=7.067356	frames=4175872	peak=1.390103432	clipped=163	loopStart=2311138	loopEnd=4051843
+AUDIO FIDELITY / 5 OF 16 READY
+RENDER	setup=44	cpu=2.479056	frames=2038272	peak=0.901320313	clipped=0	loopStart=9575	loopEnd=1980077
+AUDIO FIDELITY / 6 OF 16 READY
+RENDER	setup=24	cpu=8.706800	frames=4399104	peak=1.090356043	clipped=63	loopStart=573696	loopEnd=4350745
+AUDIO FIDELITY / 7 OF 16 READY
+RENDER	setup=76	cpu=11.858643	frames=3575296	peak=1.547813815	clipped=5018	loopStart=391138	loopEnd=3463138
+AUDIO FIDELITY / 8 OF 16 READY
+RENDER	setup=20	cpu=8.527661	frames=4291584	peak=0.950484476	clipped=0	loopStart=468525	loopEnd=4154963
+AUDIO FIDELITY / 9 OF 16 READY
+RENDER	setup=21	cpu=8.000774	frames=3681280	peak=1.280296001	clipped=331	loopStart=482190	loopEnd=3554190
+AUDIO FIDELITY / 10 OF 16 READY
+RENDER	setup=22	cpu=7.388324	frames=3115008	peak=0.987903357	clipped=0	loopStart=444292	loopEnd=3052594
+AUDIO FIDELITY / 11 OF 16 READY
+RENDER	setup=9	cpu=0.253134	frames=188416	peak=0.693116928	clipped=0	loopStart=nil	loopEnd=nil
+AUDIO FIDELITY / 12 OF 16 READY
+RENDER	setup=12	cpu=0.380383	frames=581120	peak=1.129707001	clipped=6	loopStart=nil	loopEnd=nil
+AUDIO FIDELITY / 13 OF 16 READY
+AUDIO FIDELITY / 14 OF 16 READY
+RENDER	setup=1	cpu=0.063943	frames=96256	peak=0.711664574	clipped=0	loopStart=nil	loopEnd=nil
+AUDIO FIDELITY / 15 OF 16 READY
+RENDER	setup=10	cpu=0.311122	frames=250880	peak=0.899220696	clipped=0	loopStart=nil	loopEnd=nil
+AUDIO FIDELITY / 16 OF 16 READY
+FIRST	built=16	reused=0	opens=1	cpu=77.372728
+WARM	built=0	reused=16	cpu=0.216843
+PASS actual-source 16 units / 27 WAVs / native cue+boss+ledger metadata / no source access on warm queue

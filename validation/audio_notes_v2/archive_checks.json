@@ -1,0 +1,13 @@
+{
+  "version": "1.0.7",
+  "all_baseline_files_retained": true,
+  "roundtrip_byte_equality": true,
+  "crc_check": "pass",
+  "entry_files_at_root": true,
+  "fresh_extraction_suites": {
+    "texlua": 92,
+    "luajit": 92
+  },
+  "historical_suites_not_run_per_interpreter": 1,
+  "private_source_files_added": false
+}

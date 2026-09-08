@@ -1,0 +1,2388 @@
+{
+  "lua_files": 199,
+  "checks": 397,
+  "results": [
+    {
+      "path": "UIMain.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "UIMain.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "assets/portrait_bounds.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "assets/portrait_bounds.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/ArenaBuilder.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/ArenaBuilder.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/AudioFidelityBuilder.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/AudioFidelityBuilder.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/AudioProbe.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/AudioProbe.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/AudioWorker.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/AudioWorker.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/BattleAudioBuilder.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/BattleAudioBuilder.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/BuildPipeline.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/BuildPipeline.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/CameraProbe.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/CameraProbe.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/FSYS.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/FSYS.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/FormatProbe.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/FormatProbe.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/GXTexture.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/GXTexture.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/GameCubeDisc.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/GameCubeDisc.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/HSD.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/HSD.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/MoveFXExtractor.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/MoveFXExtractor.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/PKXMetadata.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/PKXMetadata.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/PokemonExtractor.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/PokemonExtractor.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/PortableMusyX.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/PortableMusyX.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/TrainerExtractor.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/TrainerExtractor.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/TransitionBuilder.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/TransitionBuilder.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/WazaSequenceExtractor.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/WazaSequenceExtractor.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/WazaSfxBuilder.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "extract/WazaSfxBuilder.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/Abilities.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/Abilities.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/AbilityData.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/AbilityData.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/AbilityEffectsGen1.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/AbilityEffectsGen1.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/AbilityEffectsGen2.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/AbilityEffectsGen2.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/AbilityLifecycle.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/AbilityLifecycle.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/AbilityWeather.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/AbilityWeather.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/Arena.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/Arena.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/ArenaAudienceProfile.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/ArenaAudienceProfile.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/ArenaCacheIdentity.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/ArenaCacheIdentity.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/ArenaCatalog.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/ArenaCatalog.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/AudioFidelity.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/AudioFidelity.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/BattleArtBridge.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/BattleArtBridge.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/BattleAudio.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/BattleAudio.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/BattleAudioSpec.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/BattleAudioSpec.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/BattleAutoProgress.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/BattleAutoProgress.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/BattleDirector.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/BattleDirector.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/BattleMenuUI.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/BattleMenuUI.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/BattleRuntime.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/BattleRuntime.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/BattleSettings.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/BattleSettings.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/BattleSides.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/BattleSides.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/BossIntro.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/BossIntro.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/BuildProgressUI.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/BuildProgressUI.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/CacheManager.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/CacheManager.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/Camera.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/Camera.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/ColosseumDex.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/ColosseumDex.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/CurrentSpriteModels.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/CurrentSpriteModels.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/DoublesDisplayCompat.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/DoublesDisplayCompat.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/DoublesUI.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/DoublesUI.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/FrameWork.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/FrameWork.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/FreeLookCamera.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/FreeLookCamera.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/GeneratedAssets.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/GeneratedAssets.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/GenerationCompat.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/GenerationCompat.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/Mat4.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/Mat4.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/ModLookup.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/ModLookup.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/MoveFXOwnership.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/MoveFXOwnership.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/MoveFXVM.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/MoveFXVM.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/Music.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/Music.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/NativeLauncherCompat.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/NativeLauncherCompat.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/NativeTrainerSprites.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/NativeTrainerSprites.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/PlayerTrainer.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/PlayerTrainer.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/PokemonActors.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/PokemonActors.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/RelicPresentation.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/RelicPresentation.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/ResidentPrewarm.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/ResidentPrewarm.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/RuntimeMeshCache.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/RuntimeMeshCache.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/ShinySupport.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/ShinySupport.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/StadiumBridge.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/StadiumBridge.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/StandaloneHost.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/StandaloneHost.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/Trainer.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/Trainer.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/TrainerMorph.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/TrainerMorph.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/TrainerPerformance.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/TrainerPerformance.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/TrainerRig.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/TrainerRig.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/TrainerRoster.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/TrainerRoster.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/Transition.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/Transition.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/UITheme.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/UITheme.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/UIVisualCache.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/UIVisualCache.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/WazaAudioRuntime.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/WazaAudioRuntime.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/WazaHandlers.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/WazaHandlers.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/WazaPhasePolicy.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/WazaPhasePolicy.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/WazaSequenceRuntime.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/WazaSequenceRuntime.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/WorkBudget.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/WorkBudget.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/doubles/CameraDirector.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/doubles/CameraDirector.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/doubles/Core.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/doubles/Core.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/doubles/Items.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/doubles/Items.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/doubles/MovePresentation.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/doubles/MovePresentation.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/doubles/NativeAdapter.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/doubles/NativeAdapter.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/doubles/Presenter.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/doubles/Presenter.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/doubles/ReleasePresentation.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/doubles/ReleasePresentation.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/doubles/Runtime.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "lib/doubles/Runtime.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "main.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "main.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "recipes/arenas/mt_battle_summit.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "recipes/arenas/mt_battle_summit.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "recipes/arenas/outdoor_wild.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "recipes/arenas/outdoor_wild.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "run_all_tests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "run_all_tests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/AbilitiesResolverTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/AbilitiesResolverTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/AbilityBridgeTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/AbilityBridgeTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/AbilityDataTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/AbilityDataTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/AbilityEffectsGen1Tests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/AbilityEffectsGen1Tests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/AbilityEffectsGen2Tests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/AbilityEffectsGen2Tests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/AbilityGenerationBoundaryTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/AbilityGenerationBoundaryTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/AbilityWeatherTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/AbilityWeatherTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/ArenaExpansionParityTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/ArenaExpansionParityTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/ArenaFidelity1925Tests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/ArenaFidelity1925Tests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/ArenaMoveFXIntegrationTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/ArenaMoveFXIntegrationTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/ArenaSourceIntegrationTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/ArenaSourceIntegrationTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/ArenaVisibilityRegressionTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/ArenaVisibilityRegressionTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/AudioFidelityCacheTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/AudioFidelityCacheTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/AudioFidelityResamplerTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/AudioFidelityResamplerTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/AudioFidelityRoutingTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/AudioFidelityRoutingTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/AudioFidelitySettingsTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/AudioFidelitySettingsTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/AudioParityContractTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/AudioParityContractTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/BattleAnimationRegression1929Tests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/BattleAnimationRegression1929Tests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/BattleAudioCacheTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/BattleAudioCacheTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/BattleAudioNativeTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/BattleAudioNativeTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/BattleAudioRuntimeTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/BattleAudioRuntimeTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/BattleAutoProgressTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/BattleAutoProgressTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/BattleExitBoundaryTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/BattleExitBoundaryTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/BattleFieldVisibilityTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/BattleFieldVisibilityTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/BossIntroCueTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/BossIntroCueTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/CachePreparationScopeTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/CachePreparationScopeTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/CameraFXTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/CameraFXTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/DeepColosseumFidelity1930Tests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/DeepColosseumFidelity1930Tests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/DoublesCameraDirectorTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/DoublesCameraDirectorTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/DoublesCoherentPresentationTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/DoublesCoherentPresentationTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/DoublesCoordinatesTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/DoublesCoordinatesTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/DoublesDisplayCompatTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/DoublesDisplayCompatTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/DoublesEncounterIsolationTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/DoublesEncounterIsolationTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/DoublesImpactAlignmentTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/DoublesImpactAlignmentTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/DoublesItemUITests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/DoublesItemUITests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/DoublesMovePresentationTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/DoublesMovePresentationTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/DoublesOpponentHudOrderTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/DoublesOpponentHudOrderTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/DoublesPerformanceTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/DoublesPerformanceTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/DoublesPerformanceUITests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/DoublesPerformanceUITests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/DoublesSendoutTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/DoublesSendoutTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/DoublesSourceTimingIntegrationTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/DoublesSourceTimingIntegrationTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/ExtractorDecodeEconomyTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/ExtractorDecodeEconomyTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/FreeCameraLayerTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/FreeCameraLayerTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/HSDScaleTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/HSDScaleTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/HardCacheStorageQueueTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/HardCacheStorageQueueTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/InformationMenuPerformanceTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/InformationMenuPerformanceTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/MenuPrewarmBoundaryTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/MenuPrewarmBoundaryTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/MoveFXAttackHandoffTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/MoveFXAttackHandoffTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/MoveFXCacheReuseTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/MoveFXCacheReuseTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/MoveFXNativeIdentityTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/MoveFXNativeIdentityTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/MoveFXRetailParticleRuntimeTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/MoveFXRetailParticleRuntimeTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/MoveFXSourceChainTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/MoveFXSourceChainTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/MoveFXSweepTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/MoveFXSweepTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/MoveFXTransitRegressionTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/MoveFXTransitRegressionTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/MovePresentationTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/MovePresentationTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/ParticleIntensityAlphaTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/ParticleIntensityAlphaTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/PerformanceFrameBudgetTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/PerformanceFrameBudgetTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/PerformanceInformationLoadingTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/PerformanceInformationLoadingTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/PokemonPresentationIntegrityTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/PokemonPresentationIntegrityTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/PokemonReactionQueueTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/PokemonReactionQueueTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/PyriteCameraSafetyTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/PyriteCameraSafetyTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/ReleaseDefaultsAndBallOrientationTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/ReleaseDefaultsAndBallOrientationTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/ReleasePresentationTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/ReleasePresentationTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/RelicCameraSafetyTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/RelicCameraSafetyTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/RelicChamberArenaTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/RelicChamberArenaTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/RelicForest360Fidelity1928Tests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/RelicForest360Fidelity1928Tests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/RelicOutskirtsLock1927Tests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/RelicOutskirtsLock1927Tests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/RelicOutskirtsPresentationTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/RelicOutskirtsPresentationTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/RelicPresentationCleanupTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/RelicPresentationCleanupTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/RelicRetailSource1926Tests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/RelicRetailSource1926Tests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/RelicVisualFidelity1931Tests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/RelicVisualFidelity1931Tests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/ShinyActorCacheTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/ShinyActorCacheTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/ShinyDoublesPresentationTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/ShinyDoublesPresentationTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/ShinyExtractorContractTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/ShinyExtractorContractTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/ShinyHardCacheTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/ShinyHardCacheTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/ShinyIdentityAndMetadataTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/ShinyIdentityAndMetadataTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/ShinyInformationSchedulerTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/ShinyInformationSchedulerTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/ShinyUIPipelineTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/ShinyUIPipelineTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/SingleBattleSwitchUITests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/SingleBattleSwitchUITests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/TrainerBallReleaseTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/TrainerBallReleaseTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/TrainerClockReactionTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/TrainerClockReactionTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/TrainerIdleContinuityTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/TrainerIdleContinuityTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/TrainerNativeTrackTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/TrainerNativeTrackTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/TrainerReactionEventsTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/TrainerReactionEventsTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/TrainerSendoutCameraTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/TrainerSendoutCameraTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/TrainerSourceCacheTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/TrainerSourceCacheTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/TrainerStreamingTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/TrainerStreamingTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/UIThemeSettingsTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/UIThemeSettingsTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/UIVisualCacheTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/UIVisualCacheTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/WazaSfxMappingTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/WazaSfxMappingTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/doubles/AbilityTurnFlowTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/doubles/AbilityTurnFlowTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/doubles/FieldVisibilityNativeTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/doubles/FieldVisibilityNativeTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/doubles/IntegrationTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/doubles/IntegrationTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/doubles/NativeAbilitiesTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/doubles/NativeAbilitiesTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/doubles/NativeAbilityLifecycleTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/doubles/NativeAbilityLifecycleTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/doubles/PresentationTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/doubles/PresentationTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/doubles/ProgressionBoundaryTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/doubles/ProgressionBoundaryTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/doubles/RegressionTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/doubles/RegressionTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/doubles/StabilityTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/doubles/StabilityTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/doubles/TurnFlowTests.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/doubles/TurnFlowTests.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/doubles/fixture_gen2.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/doubles/fixture_gen2.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/luajit_wrapper.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/luajit_wrapper.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/retail/AudioFidelitySourceChecks.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/retail/AudioFidelitySourceChecks.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/support/ShinyHarness.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/support/ShinyHarness.lua",
+      "runtime": "luajit",
+      "pass": true,
+      "error": null
+    },
+    {
+      "path": "tests/texlua_wrapper.lua",
+      "runtime": "texlua",
+      "pass": true,
+      "error": null
+    }
+  ]
+}

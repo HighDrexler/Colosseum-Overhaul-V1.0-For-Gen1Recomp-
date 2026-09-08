@@ -1,0 +1,53 @@
+{
+  "id": "COLOSSEUM_OVERHAUL",
+  "name": "Colosseum Overhaul",
+  "version": "1.0",
+  "author": "Community",
+  "api": 2,
+  "entry": "main.lua",
+  "profile": "content",
+  "category": "GRAPHICS",
+  "game_version": "0.0.0-dev || >=0.2.11 <2.0.0",
+  "games": [
+    "gen1",
+    "gen2"
+  ],
+  "priority": 115,
+  "dependencies": [],
+  "optional_dependencies": [
+    "STADIUM_BATTLE_FX",
+    "STADIUM2_OVERWORLD_MODELS",
+    "BATTLE_ART_VOXEL_GEN2",
+    "BATTLE_ART_VOXEL_FORK",
+    "DRAMATIC_SHAPE",
+    "DRAMALESS_SHAPE",
+    "BATTLE_CINEMATICS",
+    "potato_voxel"
+  ],
+  "conflicts": [
+    "gen3_battle_ui",
+    "colosseum_ui_overhaul",
+    "COLOSSEUM_BATTLE_ENVIRONMENTS"
+  ],
+  "incompatible": [],
+  "permissions": [
+    "engine_internals"
+  ],
+  "affects_link": false,
+  "description": "Colosseum Overhaul 1.0 - fidelity release. Restores complete Relic scenery with native joint transforms; corrects arena texture coordinates, source colors, sampler state and grounded spectators. Includes trainer material/order fixes, Pokemon animation continuity and MoveFX tint/alpha/buffer fixes. Retains the runtime no-cache-screen and camera fixes. One-time retail arena refresh preserves valid actor, MoveFX and audio caches.",
+  "required_imports": [
+    {
+      "id": "pokemon_colosseum_usa",
+      "name": "Pokemon Colosseum (USA) Disc",
+      "description": "Pokemon Colosseum USA GC6E01 source. Current Gen1Recomp validates required imports before this mod runs; this manifest accepts the canonical USA ISO and the specifically tested CISO digest listed below. Other scrubbed, trimmed, recompressed, or differently generated CISO images may be rejected by the launcher before the mod can inspect their structure. This mod continues to require the canonical 24/24 source-audio cache before its custom runtime is installed; a failed or interrupted audio render is retained for retry rather than silently downgraded to native music.",
+      "file": "pokemon_colosseum_usa.iso",
+      "md5": [
+        "e3f389dc5662b9f941769e370195ec90",
+        "a2d58d82c6b76b42653dcd25c8966de7"
+      ],
+      "format": "raw",
+      "max_size": 2147483648
+    }
+  ],
+  "experimental": false
+}
