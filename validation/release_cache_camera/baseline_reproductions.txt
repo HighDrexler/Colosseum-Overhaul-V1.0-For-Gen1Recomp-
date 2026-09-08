@@ -1,4 +1,0 @@
-New behavioral tests against the unmodified input archive:
-RuntimeCacheNoScreenTests.lua: FAIL as expected: cold exact pair prepared: 0 ~= 2 (input pushes a cache state instead of preparing inline).
-ReleaseCameraContinuityTests.lua: FAIL as expected: idle transitions never traverse arena centre.
-The same tests pass against the revised build. These are controlled fixtures, not a retail playtest.

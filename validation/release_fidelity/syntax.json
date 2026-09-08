@@ -1,8 +1,0 @@
-{
-  "runtime": "Installed LOVE LuaJIT",
-  "checked": 238,
-  "excluded": [
-    "tests/texlua_wrapper.lua: explicitly Lua 5.3-only historical launcher"
-  ],
-  "result": "PASS 238 Lua files"
-}

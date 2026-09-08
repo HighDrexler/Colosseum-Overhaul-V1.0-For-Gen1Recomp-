@@ -1,6 +1,0 @@
-PASS
-desktop: source vertex OR constant RGB, stable geometry at t=0/37.5, opaque/transparent/cutout coverage across nine source profiles PASS
-mobile: source vertex OR constant RGB, stable geometry at t=0/37.5, opaque/transparent/cutout coverage across nine source profiles PASS
-Independent clamp/repeat/mirror sampler state and image reuse: real driver PASS
-Assertions: 14270
-Pokemon actor + static HSD MoveFX + morph HSD MoveFX shaders: actual driver compile/link PASS

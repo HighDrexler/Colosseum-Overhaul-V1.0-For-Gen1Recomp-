@@ -1,7 +1,0 @@
-SAME TARGET	yellow
-SAME TARGET	silver
-SAME TARGET	gold
-SAME TARGET	crystal
-SAME TARGET	blue
-SAME TARGET	red
-PASS native Manifest/Semver/ModTargets; release 1.0 accepted; same 6 game targets; same engine bounds; intentional lower version label, manual replace

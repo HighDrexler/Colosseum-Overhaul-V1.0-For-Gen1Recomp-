@@ -1,4 +1,0 @@
-SOURCE	battle5_song	voices=2475	sibling_pair_candidates=328	different_event_pair_candidates=50
-SOURCE	mirrorbo_song	voices=1951	sibling_pair_candidates=140	different_event_pair_candidates=28
-SOURCE	tool_battle1_song	voices=3419	sibling_pair_candidates=464	different_event_pair_candidates=231
-PASS AudioNoteSourceChecks: 15693 checks; source identity/choke candidates, not an audible-fidelity metric
