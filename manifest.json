@@ -1,7 +1,7 @@
 {
   "id": "COLOSSEUM_OVERHAUL",
   "name": "Colosseum Overhaul",
-  "version": "1.0",
+  "version": "3.0.1",
   "author": "Community",
   "api": 2,
   "entry": "main.lua",
@@ -10,7 +10,12 @@
   "game_version": "0.0.0-dev || >=0.2.11 <2.0.0",
   "games": [
     "gen1",
-    "gen2"
+    "gen2",
+    "firered",
+    "leafgreen",
+    "ruby",
+    "sapphire",
+    "emerald"
   ],
   "priority": 115,
   "dependencies": [],
@@ -33,8 +38,8 @@
   "permissions": [
     "engine_internals"
   ],
-  "affects_link": false,
-  "description": "Colosseum Overhaul 1.0 - complete fidelity release for Gen1Recomp. Includes Colosseum battle environments and UI, complete Relic scenery, grounded source audiences, native arena UV/color handling, trainer and Pokemon animation fixes, MoveFX fidelity improvements, and Android-safe battle-host recovery with GLES-compatible renderer fallbacks. Existing valid generated caches remain reusable.",
+  "affects_link": true,
+  "description": "Colosseum arenas, Pokemon/trainer models, source battle effects and music, eligible trainer doubles, readable menus/dialogue, 386-species catalog, expanded encounters and detached Mt. Battle challenges. Supports Gen 1/2, FireRed/LeafGreen and Ruby/Sapphire/Emerald. Shared caches and all existing features are retained. See README.md for installation.",
   "required_imports": [
     {
       "id": "pokemon_colosseum_usa",

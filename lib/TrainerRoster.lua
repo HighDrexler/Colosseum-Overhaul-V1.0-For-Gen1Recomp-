@@ -3,246 +3,381 @@ local mod=V.mod
 local GeneratedAssets=V.GeneratedAssets
 local R={index=nil,indexTried=false,indexError=nil}
 
--- Selectable Colosseum/GBA trainer actors. ROM-built entries can override these
--- through cache/trainers/generic/index.lua -> models/rivals/archetypes.
+
+
 local MODELS={
-  red={id="red",label="RED",cache="cache/trainers/red/model_cache.lua",scaleMul=1.62,playerScaleMul=1.00,enemyWorldHeight=6.90,pivotY=7.4,playerPivotY=7.4,rig="red",directSource=true,source="gc6e01-generated"},
-  leaf={id="leaf",label="GREEN / LEAF",cache="cache/trainers/leaf/model_cache.lua",scaleMul=1.66,playerScaleMul=1.02,enemyWorldHeight=6.90,pivotY=7.3,playerPivotY=7.3,rig="leaf",directSource=true,source="gc6e01-generated"},
-  wes={id="wes",label="WES / SETH",cache="cache/trainers/wes/model_cache.lua",scaleMul=1.50,playerScaleMul=.93,enemyWorldHeight=6.90,pivotY=8.0,playerPivotY=8.0,rig="wes",source="gc6e01-generated"},
-  -- GC6E01 carries distinct Kanto and Hoenn GBA battle actors.
-  brendan={id="brendan",label="BRENDAN",cache="cache/trainers/brendan/model_cache.lua",scaleMul=1.55,playerScaleMul=.96,enemyWorldHeight=6.90,pivotY=7.7,playerPivotY=7.7,rig="brendan",source="gc6e01-generated"},
-  may={id="may",label="MAY",cache="cache/trainers/may/model_cache.lua",scaleMul=1.60,playerScaleMul=.99,enemyWorldHeight=6.90,pivotY=7.5,playerPivotY=7.5,rig="may",source="gc6e01-generated"},
-  dakim={id="dakim",label="DAKIM",cache="cache/trainers/dakim/model_cache.lua",scaleMul=1.0,playerScaleMul=.62,pivotY=12.8,playerPivotY=12.8,rig="dakim",source="gc6e01-generated"},
-  nascour={id="nascour",label="NASCOUR",cache="cache/trainers/nascour/model_cache.lua",scaleMul=1.48,playerScaleMul=.92,pivotY=12.2,playerPivotY=12.2,rig="nascour",source="gc6e01-generated"},
-  miror_b={id="miror_b",label="MIROR B.",cache="cache/trainers/miror_b/model_cache.lua",scaleMul=1.28,playerScaleMul=.80,pivotY=11.3,playerPivotY=11.3,rig="miror_b",source="gc6e01-generated"},
-  cooltrainer_m={id="cooltrainer_m",label="COOLTRAINER M",cache="cache/trainers/cooltrainer_m/model_cache.lua",scaleMul=1.47,enemyWorldHeight=6.90,pivotY=8.1,rig="cooltrainer_m",source="gc6e01-generated"},
-  cooltrainer_f={id="cooltrainer_f",label="COOLTRAINER F",cache="cache/trainers/cooltrainer_f/model_cache.lua",scaleMul=1.58,enemyWorldHeight=6.90,pivotY=7.6,rig="cooltrainer_f",source="gc6e01-generated"},
+red={id="red",label="RED",cache="cache/trainers/red/model_cache.lua",scaleMul=1.62,playerScaleMul=1.00,enemyWorldHeight=6.90,pivotY=7.4,playerPivotY=7.4,rig="red",directSource=true,source="gc6e01-generated"},
+leaf={id="leaf",label="GREEN / LEAF",cache="cache/trainers/leaf/model_cache.lua",scaleMul=1.66,playerScaleMul=1.02,enemyWorldHeight=6.90,pivotY=7.3,playerPivotY=7.3,rig="leaf",directSource=true,source="gc6e01-generated"},
+wes={id="wes",label="WES / SETH",cache="cache/trainers/wes/model_cache.lua",scaleMul=1.50,playerScaleMul=.93,enemyWorldHeight=6.90,pivotY=8.0,playerPivotY=8.0,rig="wes",source="gc6e01-generated"},
+
+brendan={id="brendan",label="BRENDAN",cache="cache/trainers/brendan/model_cache.lua",scaleMul=1.55,playerScaleMul=.96,enemyWorldHeight=6.90,pivotY=7.7,playerPivotY=7.7,rig="brendan",source="gc6e01-generated"},
+may={id="may",label="MAY",cache="cache/trainers/may/model_cache.lua",scaleMul=1.60,playerScaleMul=.99,enemyWorldHeight=6.90,pivotY=7.5,playerPivotY=7.5,rig="may",source="gc6e01-generated"},
+dakim={id="dakim",label="DAKIM",cache="cache/trainers/dakim/model_cache.lua",scaleMul=1.0,playerScaleMul=.62,pivotY=12.8,playerPivotY=12.8,rig="dakim",source="gc6e01-generated"},
+nascour={id="nascour",label="NASCOUR",cache="cache/trainers/nascour/model_cache.lua",scaleMul=1.48,playerScaleMul=.92,pivotY=12.2,playerPivotY=12.2,rig="nascour",source="gc6e01-generated"},
+miror_b={id="miror_b",label="MIROR B.",cache="cache/trainers/miror_b/model_cache.lua",scaleMul=1.28,playerScaleMul=.80,pivotY=11.3,playerPivotY=11.3,rig="miror_b",source="gc6e01-generated"},
+cooltrainer_m={id="cooltrainer_m",label="COOLTRAINER M",cache="cache/trainers/cooltrainer_m/model_cache.lua",scaleMul=1.47,enemyWorldHeight=6.90,pivotY=8.1,rig="cooltrainer_m",source="gc6e01-generated"},
+cooltrainer_f={id="cooltrainer_f",label="COOLTRAINER F",cache="cache/trainers/cooltrainer_f/model_cache.lua",scaleMul=1.58,enemyWorldHeight=6.90,pivotY=7.6,rig="cooltrainer_f",source="gc6e01-generated"},
 }
+local SOURCE_CLASS_MODELS={"agent_m","agent_f","baba_a","geinin","hunter_f","jiji_a","kenkyuin","mania",
+"niku_m","niku_f","obo","ojo","ojisan","rider_m","rider_f","snach_zako","sport_m","sport_f",
+"thief_m","thief_f","warugaki","worker_m"}
+for _,id in ipairs(SOURCE_CLASS_MODELS) do
+MODELS[id]={id=id,label=id:gsub("_"," "):upper(),cache="cache/trainers/"..id.."/model_cache.lua",
+pivotY=7.4,rig=id,source="gc6e01-generated"}
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+R.HUMAN_BATTLE_HEIGHT=6.90
+
+
+local SOURCE_HEIGHT={
+red=16.101305,leaf=15.735957,wes=17.406225,brendan=16.86189,may=16.25281,
+cooltrainer_m=17.69574,cooltrainer_f=16.49731,dakim=34.61308,nascour=22.98924,miror_b=26.78492,
+}
+function R.battleHeight(cfg)
+local h=cfg and tonumber(cfg.battleHeight or cfg.enemyWorldHeight or cfg.playerWorldHeight)
+return (h and h>0) and h or R.HUMAN_BATTLE_HEIGHT
+end
+
+
+function R.modelScale(cfg,bounds)
+if type(cfg)~="table" then return nil end
+local h
+if type(bounds)=="table" and type(bounds.min)=="table" and type(bounds.max)=="table" then
+h=(tonumber(bounds.max[2]) or 0)-(tonumber(bounds.min[2]) or 0)
+end
+if not (h and h>.01) then
+h=tonumber(cfg.sourceHeight) or SOURCE_HEIGHT[tostring(cfg.rig or cfg.id or ""):lower()]
+or SOURCE_HEIGHT[tostring(cfg.id or ""):lower()]
+end
+if not (h and h>.01) then return nil end
+return R.battleHeight(cfg)/h
+end
 local PLAYER_ORDER={"red","wes","brendan","may","leaf","dakim","nascour","miror_b"}
 local RIVAL_ORDER={"leaf","red","wes","brendan","may","dakim","nascour","miror_b"}
 local ENEMY_ORDER={"cooltrainer_m","cooltrainer_f","red","leaf","wes","brendan","may","dakim","nascour","miror_b"}
+for _,id in ipairs(SOURCE_CLASS_MODELS) do ENEMY_ORDER[#ENEMY_ORDER+1]=id end
 
 local BOSS_NAMES={
-  "BROCK","MISTY","SURGE","ERIKA","KOGA","SABRINA","BLAINE","GIOVANNI",
-  "LORELEI","BRUNO","AGATHA","LANCE","CHAMPION",
-  "FALKNER","BUGSY","WHITNEY","MORTY","CHUCK","JASMINE","PRYCE","CLAIR",
-  "WILL","KAREN","RED",
+"BROCK","MISTY","SURGE","ERIKA","KOGA","SABRINA","BLAINE","GIOVANNI",
+"LORELEI","BRUNO","AGATHA","LANCE","CHAMPION",
+"FALKNER","BUGSY","WHITNEY","MORTY","CHUCK","JASMINE","PRYCE","CLAIR",
+"WILL","KAREN","RED",
+
+"ROXANNE","BRAWLY","WATTSON","FLANNERY","NORMAN","WINONA","TATE","LIZA","JUAN",
+"SIDNEY","PHOEBE","GLACIA","DRAKE","STEVEN","WALLACE","MAXIE","ARCHIE",
+"ANABEL","TUCKER","SPENSER","GRETA","NOLAND","LUCY","BRANDON",
+
+"LEADER","ELITE_FOUR","AQUA_LEADER","MAGMA_LEADER",
+"SALON_MAIDEN","DOME_ACE","PALACE_MAVEN","ARENA_TYCOON","FACTORY_HEAD","PIKE_QUEEN","PYRAMID_KING",
+}
+
+
+local FEMALE_BOSS_NAMES={
+"MISTY","ERIKA","SABRINA","LORELEI","WHITNEY","JASMINE","CLAIR","KAREN",
+"ROXANNE","FLANNERY","WINONA","LIZA","PHOEBE","GLACIA","SHELLY","COURTNEY",
+"ANABEL","GRETA","LUCY","SALON_MAIDEN","PIKE_QUEEN",
+}
+
+local FEMALE_CLASS_TOKENS={
+"SWIMMER_F","BEAUTY","LASS","JR_TRAINER_F","COOLTRAINER_F","PICNICKER","KIMONO_GIRL","SKIER",
+"AROMA_LADY","PARASOL_LADY","BATTLE_GIRL","TUBER_F","HEX_MANIAC","CRUSH_GIRL","PAINTER",
+"TWINS","LADY","GIRL","MAIDEN","QUEEN","FEMALE","CHANNELER","MEDIUM",
 }
 
 local function battleOf(ctx)
-  if type(ctx)~="table" then return nil end
-  return ctx.battle or (ctx.kind and ctx) or nil
+if type(ctx)~="table" then return nil end
+return ctx.battle or (ctx.kind and ctx) or nil
 end
 local function values(ctx)
-  local b=battleOf(ctx)
-  if not b then return {} end
-  return {
-    b.oppClass,b.oppName,b.trainerClass,b.trainerName,b.enemyTrainerName,
-    b.enemyTrainer and b.enemyTrainer.id,b.enemyTrainer and b.enemyTrainer.name,b.enemyTrainer and b.enemyTrainer.class,
-    b.opponent and b.opponent.id,b.opponent and b.opponent.name,b.opponent and b.opponent.class,
-    b.trainer and b.trainer.id,b.trainer and b.trainer.name,b.trainer and b.trainer.class,
-  }
+local b=battleOf(ctx)
+if not b then return {} end
+return {
+b.oppClass,b.oppName,b.trainerClass,b.trainerName,b.enemyTrainerName,
+b.enemyTrainer and b.enemyTrainer.id,b.enemyTrainer and b.enemyTrainer.name,b.enemyTrainer and b.enemyTrainer.class,
+b.opponent and b.opponent.id,b.opponent and b.opponent.name,b.opponent and b.opponent.class,
+b.trainer and b.trainer.id,b.trainer and b.trainer.name,b.trainer and b.trainer.class,
+}
 end
 local function tokens(ctx)
-  local out={}
-  for _,v in ipairs(values(ctx)) do
-    if v~=nil then out[#out+1]=tostring(v):upper():gsub("[%s%-]+","_") end
-  end
-  return out
+local out={}
+for _,v in ipairs(values(ctx)) do
+if v~=nil then
+local key=tostring(v):upper():gsub("[%s%-]+","_")
+
+
+
+
+key=key:gsub("^TRAINER_CLASS_","")
+out[#out+1]=key
+end
+end
+return out
 end
 local function containsAny(list,needles)
-  for _,key in ipairs(list) do for _,needle in ipairs(needles) do if key:find(needle,1,true) then return true end end end
-  return false
+for _,key in ipairs(list) do for _,needle in ipairs(needles) do if key:find(needle,1,true) then return true end end end
+return false
 end
 local function gameFor(ctx)
-  local b=battleOf(ctx)
-  return (b and b.game) or (ctx and ctx.game) or (mod and mod.game)
+local b=battleOf(ctx)
+return (b and b.game) or (ctx and ctx.game) or (mod and mod.game)
 end
 local function prefs(ctx)
-  local game=gameFor(ctx)
-  local p=game and game.save and game.save.colosseumBattle
-  return type(p)=="table" and p or {}
+local game=gameFor(ctx)
+local p=game and game.save and game.save.colosseumBattle
+return type(p)=="table" and p or {}
 end
 local function info(path) return GeneratedAssets.info(path) end
 local function exists(path) return GeneratedAssets.exists(path) end
 local function readLua(path)
-  local value,err=GeneratedAssets.readLua(path)
-  return type(value)=="table" and value or nil,err or "invalid roster index"
+local value,err=GeneratedAssets.readLua(path)
+return type(value)=="table" and value or nil,err or "invalid roster index"
 end
 local function loadIndex()
-  if R.indexTried then return R.index end
-  R.indexTried=true
-  local idx,err=readLua("cache/trainers/generic/index.lua")
-  local version=idx and tonumber(idx.version or 1)
-  if idx and version and version>=1 and version<=2 then R.index=idx;R.indexError=nil else R.index=nil;R.indexError=err or "unsupported roster index version" end
-  return R.index
+if R.indexTried then return R.index end
+R.indexTried=true
+local idx,err=readLua("cache/trainers/generic/index.lua")
+local version=idx and tonumber(idx.version or 1)
+if idx and version and version>=1 and version<=2 then R.index=idx;R.indexError=nil else R.index=nil;R.indexError=err or "unsupported roster index version" end
+return R.index
 end
 local function normalizeEntry(id,entry,source)
-  if type(entry)~="table" then return nil end
-  local cache=entry.cache or entry.model or entry.modelCache
-  if type(cache)~="string" or cache=="" or not exists(cache) then return nil end
-  return {
-    id=tostring(entry.id or id),label=tostring(entry.label or id):upper(),cache=cache,
-    scaleMul=tonumber(entry.scaleMul) or tonumber(entry.scale) or 1,
-    playerScaleMul=tonumber(entry.playerScaleMul) or tonumber(entry.playerScale),
-    enemyWorldHeight=tonumber(entry.enemyWorldHeight) or tonumber(entry.enemyTargetHeight),
-    pivotY=tonumber(entry.pivotY) or 12.0,
-    playerPivotY=tonumber(entry.playerPivotY) or tonumber(entry.pivotY) or 12.0,
-    rig=tostring(entry.rig or entry.id or id):lower(),directSource=entry.directSource==true,source=source or "rom-generic",
-  }
+if type(entry)~="table" then return nil end
+local cache=entry.cache or entry.model or entry.modelCache
+if type(cache)~="string" or cache=="" or not exists(cache) then return nil end
+return {
+id=tostring(entry.id or id),label=tostring(entry.label or id):upper(),cache=cache,
+scaleMul=tonumber(entry.scaleMul) or tonumber(entry.scale) or 1,
+playerScaleMul=tonumber(entry.playerScaleMul) or tonumber(entry.playerScale),
+enemyWorldHeight=tonumber(entry.enemyWorldHeight) or tonumber(entry.enemyTargetHeight),
+battleHeight=tonumber(entry.battleHeight),
+sourceHeight=tonumber(entry.sourceHeight),
+pivotY=tonumber(entry.pivotY) or 12.0,
+playerPivotY=tonumber(entry.playerPivotY) or tonumber(entry.pivotY) or 12.0,
+rig=tostring(entry.rig or entry.id or id):lower(),directSource=entry.directSource==true,source=source or "rom-generic",
+}
 end
 local function indexEntry(group,id)
-  local idx=loadIndex(); local tableGroup=idx and idx[group]
-  return normalizeEntry(id,tableGroup and tableGroup[id],"rom-"..tostring(group))
+local idx=loadIndex(); local tableGroup=idx and idx[group]
+return normalizeEntry(id,tableGroup and tableGroup[id],"rom-"..tostring(group))
 end
 
 local function catalogEntry(id)
-  id=tostring(id or ""):lower()
-  if id=="green" or id=="female" then id="leaf" end
-  if id=="seth" or id=="colosseum" or id=="protagonist" then id="wes" end
-  local fromIndex=indexEntry("models",id)
-  if fromIndex then return fromIndex end
-  local base=MODELS[id]
-  if not base or not exists(base.cache) then return nil end
-  local out={};for k,v in pairs(base) do out[k]=v end;return out
+id=tostring(id or ""):lower()
+if id=="green" or id=="female" then id="leaf" end
+if id=="seth" or id=="colosseum" or id=="protagonist" then id="wes" end
+local fromIndex=indexEntry("models",id)
+if fromIndex then return fromIndex end
+local base=MODELS[id]
+if not base or not exists(base.cache) then return nil end
+local out={};for k,v in pairs(base) do out[k]=v end;return out
 end
 function R.normalizeChoice(id,role)
-  id=tostring(id or ""):lower()
-  if id=="green" then id="leaf" elseif id=="seth" then id="wes" end
-  if role=="enemy" and id=="all" then id="auto" end
-  local valid={off=true,auto=role=="enemy"}
-  for k,_ in pairs(MODELS) do valid[k]=true end
-  return valid[id] and id or ((role=="player" and "red") or (role=="rival" and "leaf") or "auto")
+id=tostring(id or ""):lower()
+if id=="green" then id="leaf" elseif id=="seth" then id="wes" end
+if role=="enemy" and id=="all" then id="auto" end
+local valid={off=true,auto=role=="enemy"}
+for k,_ in pairs(MODELS) do valid[k]=true end
+return valid[id] and id or ((role=="player" and "red") or (role=="rival" and "leaf") or "auto")
 end
 function R.label(id)
-  id=R.normalizeChoice(id,"player")
-  if id=="off" then return "OFF" end
-  if id=="auto" then return "AUTO" end
-  return (MODELS[id] and MODELS[id].label) or tostring(id):upper()
+id=R.normalizeChoice(id,"player")
+if id=="off" then return "OFF" end
+if id=="auto" then return "AUTO" end
+return (MODELS[id] and MODELS[id].label) or tostring(id):upper()
 end
 function R.options(role)
-  local out={}
-  if role=="enemy" then out[#out+1]={id="auto",label="AUTO / TRAINER CLASS",available=true} end
-  out[#out+1]={id="off",label="OFF",available=true}
-  local order=(role=="rival" and RIVAL_ORDER) or (role=="enemy" and ENEMY_ORDER) or PLAYER_ORDER
-  for _,id in ipairs(order) do
-    local cfg=catalogEntry(id)
-    out[#out+1]={id=id,label=(MODELS[id] and MODELS[id].label) or id:upper(),available=cfg~=nil}
-  end
-  return out
+local out={}
+if role=="enemy" then out[#out+1]={id="auto",label="AUTO / TRAINER CLASS",available=true} end
+out[#out+1]={id="off",label="OFF",available=true}
+local order=(role=="rival" and RIVAL_ORDER) or (role=="enemy" and ENEMY_ORDER) or PLAYER_ORDER
+for _,id in ipairs(order) do
+local cfg=catalogEntry(id)
+out[#out+1]={id=id,label=(MODELS[id] and MODELS[id].label) or id:upper(),available=cfg~=nil}
+end
+return out
 end
 function R.modelById(id)
-  id=R.normalizeChoice(id,"player")
-  if id=="off" or id=="auto" then return nil end
-  return catalogEntry(id)
+id=R.normalizeChoice(id,"player")
+if id=="off" or id=="auto" then return nil end
+return catalogEntry(id)
 end
 
 function R.isRival(ctx)
-  local b=battleOf(ctx)
-  if not b or b.kind~="trainer" then return false end
-  local oc=tostring(b.oppClass or ""):upper()
-  -- Gen1Recomp exposes every Kanto rival encounter directly as OPP_RIVAL1/2/3.
-  -- Use that authoritative identity first; names are user-editable and must not
-  -- be required for rival presentation.
-  if oc=="OPP_RIVAL1" or oc=="OPP_RIVAL2" or oc=="OPP_RIVAL3" or oc:find("OPP_RIVAL",1,true)==1 then return true end
-  return containsAny(tokens(ctx),{"RIVAL","BLUE","GARY"})
+local b=battleOf(ctx)
+if not b or b.kind~="trainer" then return false end
+if b.__cbeGeneration==3 and b.__cbeNativeRival~=nil then return b.__cbeNativeRival end
+local oc=tostring(b.oppClass or ""):upper()
+
+
+
+if oc=="OPP_RIVAL1" or oc=="OPP_RIVAL2" or oc=="OPP_RIVAL3" or oc:find("OPP_RIVAL",1,true)==1 then return true end
+return containsAny(tokens(ctx),{"RIVAL","BLUE","GARY"})
 end
 function R.isBoss(ctx)
-  local b=battleOf(ctx); if not b or b.kind~="trainer" then return false end
-  if b.isGymLeader then return true end
-  if R.isRival(ctx) then return true end
-  return containsAny(tokens(ctx),BOSS_NAMES)
+local b=battleOf(ctx); if not b or b.kind~="trainer" then return false end
+if b.isGymLeader then return true end
+if R.isRival(ctx) then return true end
+return containsAny(tokens(ctx),BOSS_NAMES)
+end
+
+
+local function trainerFemale(ctx)
+local b=battleOf(ctx);local tr=b and (b.trainer or b.enemyTrainer or b.opponent)
+if type(tr)~="table" then return nil end
+local g=tr.gender or tr.trainerGender
+if g==1 or g=="female" or g=="F" or g=="f" or tr.female==true then return true end
+if g==0 or g=="male" or g=="M" or g=="m" or tr.female==false then return false end
+local musicGender=tonumber(tr.encounterMusic_gender or tr.encounterMusicGender)
+if musicGender then return musicGender>=128 end
+return nil
+end
+local function femaleTrainer(ctx,t)
+local explicit=trainerFemale(ctx)
+if explicit~=nil then return explicit end
+if containsAny(t,FEMALE_CLASS_TOKENS) then return true end
+
+
+for _,key in ipairs(t) do if key:sub(-2)=="_F" then return true end end
+return false
 end
 local function genericKey(ctx)
-  local t=tokens(ctx)
-  if containsAny(t,{"ROCKET"}) then return containsAny(t,{"FEMALE","_F","GIRL"}) and "rocket_f" or "rocket_m" end
-  if containsAny(t,{"SCIENTIST","ENGINEER","BURGLAR"}) then return "scientist_m" end
-  if containsAny(t,{"PSYCHIC","CHANNELER","MEDIUM","SAGE"}) then return containsAny(t,{"CHANNELER","MEDIUM","FEMALE","_F"}) and "psychic_f" or "psychic_m" end
-  if containsAny(t,{"BLACKBELT","HIKER","BIKER","CUE_BALL","FIREBREATHER"}) then return "athletic_m" end
-  if containsAny(t,{"SWIMMER_F","BEAUTY","LASS","JR_TRAINER_F","COOLTRAINER_F","PICNICKER","KIMONO_GIRL","SKIER"}) then return "young_f" end
-  if containsAny(t,{"YOUNGSTER","BUG_CATCHER","JR_TRAINER_M","COOLTRAINER_M","SWIMMER_M","CAMPER","SCHOOLBOY","BIRD_KEEPER"}) then return "young_m" end
-  if containsAny(t,{"GENTLEMAN","GAMBLER","FISHER","SAILOR","POKEMANIAC"}) then return "adult_m" end
-  if containsAny(t,{"POKE_MANIAC","TAMER","JUGGLER","SCIENTIST","BOARDER"}) then return "specialist_m" end
-  return "default_m"
+local t=tokens(ctx)
+
+
+
+if containsAny(t,{"TEAM_AQUA","TEAM_MAGMA","AQUA_ADMIN","MAGMA_ADMIN","AQUA_GRUNT","MAGMA_GRUNT"}) then
+return femaleTrainer(ctx,t) and "team_f" or "team_m"
+end
+if containsAny(t,{"COOLTRAINER_F","ACE_TRAINER_F"}) then return "cooltrainer_f" end
+if containsAny(t,{"COOLTRAINER_M","ACE_TRAINER_M"}) then return "cooltrainer_m" end
+if containsAny(t,{"COOLTRAINER","ACE_TRAINER"}) then return femaleTrainer(ctx,t) and "cooltrainer_f" or "cooltrainer_m" end
+if containsAny(t,{"ROCKET"}) then return femaleTrainer(ctx,t) and "rocket_f" or "rocket_m" end
+if containsAny(t,{"NINJA_BOY"}) then return "ninja_m" end
+if containsAny(t,{"BATTLE_GIRL","CRUSH_GIRL"}) then return "athletic_f" end
+if containsAny(t,{"BLACKBELT"}) then return "athletic_m" end
+if containsAny(t,{"BIKER","CUE_BALL","BOARDER"}) then return femaleTrainer(ctx,t) and "rider_f" or "rider_m" end
+if containsAny(t,{"SWIMMER","PICNICKER","CAMPER","TUBER"}) then return femaleTrainer(ctx,t) and "sport_f" or "sport_m" end
+if containsAny(t,{"SCIENTIST","ENGINEER"}) then return "scientist_m" end
+if containsAny(t,{"BURGLAR","THIEF"}) then return "rocket_m" end
+if containsAny(t,{"JUGGLER","FIREBREATHER"}) then return "entertainer_m" end
+if containsAny(t,{"WORKER","HIKER"}) then return "worker_m" end
+if containsAny(t,{"GENTLEMAN","SAGE"}) then return "elderly_m" end
+if containsAny(t,{"SCHOOLBOY"}) then return "school_m" end
+if containsAny(t,{"BEAUTY","AROMA_LADY","PARASOL_LADY","KIMONO_GIRL","HEX_MANIAC","POKEFAN_F"}) then return "adult_f" end
+if containsAny(t,{"PSYCHIC","CHANNELER","MEDIUM"}) then return femaleTrainer(ctx,t) and "adult_f" or "specialist_m" end
+if femaleTrainer(ctx,t) then return "young_f" end
+if containsAny(t,{"YOUNGSTER","BUG_CATCHER","JR_TRAINER_M","BIRD_KEEPER"}) then return "young_m" end
+if containsAny(t,{"GAMBLER","FISHER","SAILOR"}) then return "adult_m" end
+if containsAny(t,{"POKE_MANIAC","POKEMANIAC","TAMER"}) then return "specialist_m" end
+return "default_m"
 end
 local function specialFor(ctx)
-  local t=tokens(ctx)
-  if containsAny(t,{"LANCE"}) then return catalogEntry("miror_b") end
-  if containsAny(t,{"AGATHA"}) then return catalogEntry("nascour") end
-  if R.isBoss(ctx) and not R.isRival(ctx) then return catalogEntry("dakim") end
-  return nil
+local t=tokens(ctx)
+if containsAny(t,{"TEAM_AQUA","TEAM_MAGMA","AQUA_ADMIN","MAGMA_ADMIN","AQUA_GRUNT","MAGMA_GRUNT"}) then
+return indexEntry("archetypes",femaleTrainer(ctx,t) and "team_f" or "team_m")
+end
+if containsAny(t,{"LANCE"}) then return catalogEntry("miror_b") end
+if containsAny(t,{"AGATHA"}) then return catalogEntry("nascour") end
+if R.isBoss(ctx) and not R.isRival(ctx) then
+local explicit=trainerFemale(ctx)
+if explicit==true or (explicit==nil and containsAny(t,FEMALE_BOSS_NAMES)) then
+return indexEntry("archetypes","adult_f") or catalogEntry("cooltrainer_f")
+end
+return catalogEntry("dakim")
+end
+return nil
 end
 
 function R.playerModelFor(ctx)
-  local p=prefs(ctx)
-  local choice=R.normalizeChoice(p.playerModel or (p.playerTrainerModel==false and "off" or "red"),"player")
-  if choice=="off" then return nil,"player-off" end
-  local cfg=indexEntry("players",choice) or catalogEntry(choice)
-  return cfg,cfg and ("player:"..choice) or ("player-cache-missing:"..choice)
+local b=battleOf(ctx)
+if b and b.__mtbHub==true then
+local requested=(b.trainer and b.trainer.playerModel) or "wes"
+local choice=R.normalizeChoice(requested,"player")
+if choice=="off" then choice="wes" end
+local cfg=indexEntry("players",choice) or catalogEntry(choice) or catalogEntry("wes")
+return cfg,cfg and ("mtbattle-hub:"..tostring(cfg.id or choice)) or "mtbattle-hub-model-missing"
+end
+local p=prefs(ctx)
+local choice=R.normalizeChoice(p.playerModel or (p.playerTrainerModel==false and "off" or "red"),"player")
+if choice=="off" then return nil,"player-off" end
+local cfg=indexEntry("players",choice) or catalogEntry(choice)
+return cfg,cfg and ("player:"..choice) or ("player-cache-missing:"..choice)
 end
 function R.modelFor(ctx)
-  local b=battleOf(ctx); if not b or b.kind~="trainer" then return nil,"not-trainer" end
-  local p=prefs(ctx)
-  if R.isRival(ctx) then
-    local choice=R.normalizeChoice(p.rivalModel or "leaf","rival")
-    if choice=="off" then return nil,"rival-off" end
-    local cfg=indexEntry("rivals",choice) or catalogEntry(choice)
-    return cfg,cfg and ("rival:"..choice) or ("rival-cache-missing:"..choice)
-  end
-  local enemyChoice=R.normalizeChoice(p.enemyTrainerModel or (p.enemyTrainerModels==false and "off" or "auto"),"enemy")
-  if enemyChoice=="off" then return nil,"enemy-models-off" end
-  if enemyChoice~="auto" then
-    local cfg=catalogEntry(enemyChoice)
-    return cfg,cfg and ("enemy-forced:"..enemyChoice) or ("enemy-cache-missing:"..enemyChoice)
-  end
-  local special=specialFor(ctx); if special then return special,"special" end
-  local key=genericKey(ctx)
-  local generic=indexEntry("archetypes",key) or indexEntry("archetypes","default_m")
-  if generic then return generic,"generic:"..key end
-  return nil,"generic-cache-missing:"..key
+local b=battleOf(ctx); if not b or b.kind~="trainer" then return nil,"not-trainer" end
+local p=prefs(ctx)
+if R.isRival(ctx) then
+local choice=R.normalizeChoice(p.rivalModel or "leaf","rival")
+if choice=="off" then return nil,"rival-off" end
+local cfg=indexEntry("rivals",choice) or catalogEntry(choice)
+return cfg,cfg and ("rival:"..choice) or ("rival-cache-missing:"..choice)
 end
--- Return a tiny, ordered trainer working set that can be prepared before a
--- battle exists. Rival choice is first because rival battles otherwise have to
--- parse/upload the entire trainer cache on battle.started. AUTO enemy mode gets
--- only the generic default archetype; class-specific models remain lazy so this
--- does not turn mobile startup into an all-trainer VRAM preload.
+local enemyChoice=R.normalizeChoice(p.enemyTrainerModel or (p.enemyTrainerModels==false and "off" or "auto"),"enemy")
+if enemyChoice=="off" then return nil,"enemy-models-off" end
+if enemyChoice~="auto" then
+local cfg=catalogEntry(enemyChoice)
+return cfg,cfg and ("enemy-forced:"..enemyChoice) or ("enemy-cache-missing:"..enemyChoice)
+end
+local special=specialFor(ctx); if special then return special,"special" end
+local key=genericKey(ctx)
+local generic=indexEntry("archetypes",key) or indexEntry("archetypes","default_m")
+if generic then return generic,"generic:"..key end
+return nil,"generic-cache-missing:"..key
+end
+
+
+
+
+
 function R.prewarmPlan(game)
-  local ctx={game=game}
-  local p=prefs(ctx)
-  local out,seen={},{}
-  local function add(cfg,reason)
-    if not cfg then return end
-    local key=tostring(cfg.id or cfg.cache or cfg.label or "trainer")
-    if seen[key] then return end
-    seen[key]=true
-    out[#out+1]={config=cfg,reason=reason or "prewarm"}
-  end
+local ctx={game=game}
+local p=prefs(ctx)
+local out,seen={},{}
+local function add(cfg,reason)
+if not cfg then return end
+local key=tostring(cfg.id or cfg.cache or cfg.label or "trainer")
+if seen[key] then return end
+seen[key]=true
+out[#out+1]={config=cfg,reason=reason or "prewarm"}
+end
 
-  local rivalChoice=R.normalizeChoice(p.rivalModel or "leaf","rival")
-  if rivalChoice~="off" then
-    add(indexEntry("rivals",rivalChoice) or catalogEntry(rivalChoice),"rival:"..rivalChoice)
-  end
+local rivalChoice=R.normalizeChoice(p.rivalModel or "leaf","rival")
+if rivalChoice~="off" then
+add(indexEntry("rivals",rivalChoice) or catalogEntry(rivalChoice),"rival:"..rivalChoice)
+end
 
-  local enemyChoice=R.normalizeChoice(p.enemyTrainerModel or (p.enemyTrainerModels==false and "off" or "auto"),"enemy")
-  if enemyChoice~="off" then
-    if enemyChoice~="auto" then
-      add(catalogEntry(enemyChoice),"enemy-forced:"..enemyChoice)
-    else
-      add(indexEntry("archetypes","default_m"),"generic:default_m")
-    end
-  end
-  return out
+local enemyChoice=R.normalizeChoice(p.enemyTrainerModel or (p.enemyTrainerModels==false and "off" or "auto"),"enemy")
+if enemyChoice~="off" then
+if enemyChoice~="auto" then
+add(catalogEntry(enemyChoice),"enemy-forced:"..enemyChoice)
+else
+add(indexEntry("archetypes","default_m"),"generic:default_m")
+end
+end
+return out
 end
 
 function R.available(id) return catalogEntry(id)~=nil end
 function R.coverage()
-  local idx=loadIndex(); local archetypes,rivals,players,models=0,0,0,0
-  if idx and type(idx.archetypes)=="table" then for id,_ in pairs(idx.archetypes) do if indexEntry("archetypes",id) then archetypes=archetypes+1 end end end
-  if idx and type(idx.rivals)=="table" then for id,_ in pairs(idx.rivals) do if indexEntry("rivals",id) then rivals=rivals+1 end end end
-  if idx and type(idx.players)=="table" then for id,_ in pairs(idx.players) do if indexEntry("players",id) then players=players+1 end end end
-  for id,_ in pairs(MODELS) do if catalogEntry(id) then models=models+1 end end
-  return {index=idx~=nil,error=R.indexError,archetypes=archetypes,rivals=rivals,players=players,models=models,
-    red=R.available("red"),leaf=R.available("leaf"),wes=R.available("wes"),brendan=R.available("brendan"),may=R.available("may")}
+local idx=loadIndex(); local archetypes,rivals,players,models=0,0,0,0
+if idx and type(idx.archetypes)=="table" then for id,_ in pairs(idx.archetypes) do if indexEntry("archetypes",id) then archetypes=archetypes+1 end end end
+if idx and type(idx.rivals)=="table" then for id,_ in pairs(idx.rivals) do if indexEntry("rivals",id) then rivals=rivals+1 end end end
+if idx and type(idx.players)=="table" then for id,_ in pairs(idx.players) do if indexEntry("players",id) then players=players+1 end end end
+for id,_ in pairs(MODELS) do if catalogEntry(id) then models=models+1 end end
+return {index=idx~=nil,error=R.indexError,archetypes=archetypes,rivals=rivals,players=players,models=models,
+red=R.available("red"),leaf=R.available("leaf"),wes=R.available("wes"),brendan=R.available("brendan"),may=R.available("may")}
 end
 function R.resetRuntime() R.index=nil;R.indexTried=false;R.indexError=nil;return true end
 function R.status() return R.coverage() end

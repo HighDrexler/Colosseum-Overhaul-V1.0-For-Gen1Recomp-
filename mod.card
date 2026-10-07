@@ -1,5 +1,16 @@
-1.0 COMPLETE RELEASE — COLOSSEUM BATTLE ENVIRONMENTS + COLOSSEUM-INSPIRED UI
-• Complete Colosseum arena presentation with fidelity, trainer, Pokemon animation, MoveFX, audio and camera improvements.
-• Includes Android-safe battle-host recovery, GLES-compatible arena shader fallback, depth-target fallback and isolated render-pass recovery.
-• Prevents renderer faults from leaving black or white battle screens while preserving normal battle flow.
-• Existing valid generated model, arena, MoveFX and audio caches remain reusable.
+COLOSSEUM OVERHAUL 3.0.1
+
+COMBINED RELEASE - GENERATIONS 1, 2 AND 3
+
+Fixes accelerated Ruby/Sapphire/Emerald starter model motion with real-time display updates. Native selection and confirmation are retained.
+
+Colosseum arenas, 386 Pokemon models/portraits, source trainer actors, Waza arena effects/audio, battle camera, doubles, HD battle UI, dialogue/menus, Gen 3 level-up stats, Colosseum Dex, expanded encounters, move preparation, optional EXP Share and Mt. Battle.
+
+INSTALL
+Import this ZIP through the launcher, replace the previous combined package and enable one copy. Keep your Pokemon Colosseum USA import and generated caches; no global wipe is required. Reopen Mt. Battle after updating. Ruby/Sapphire require a Gen1Recomp release with native support. No ROMs, disc images, saves or generated caches are included.
+
+MT. BATTLE
+Gen 1/2: START > BATTLE > MT. BATTLE. Gen 3: START > COLOSSEUM > MT. BATTLE. Shared setup/music, climb formats, party/PC/all-386 rentals, custom teams and suspend/resume are retained. Challenges are available before the Elite Four with progression-independent obedience.
+
+PERFORMANCE AND COMPATIBILITY
+All existing features, source assets and cache identities are retained. Frame-based camera/presentation, reusable source lookups, preparation of linked particle tracks, mobile arena memory budgets and resize/rotation cleanup remain included. Development files and release history are excluded from this package. See README.md for controls, installation and verification scope. Third-party licenses are included.
