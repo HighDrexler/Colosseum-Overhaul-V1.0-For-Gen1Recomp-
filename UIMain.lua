@@ -1791,6 +1791,7 @@ return true
 end
 
 local ColosseumUI = {}
+ColosseumUI.portraitFrame=colosseumIconFrame
 
 function ColosseumUI.install(mod)
 modRef=mod
@@ -7183,36 +7184,12 @@ end
 
 
 
-local function drawColosseumRunoffPanel(x,y,w,h,headerH)
-local g=love.graphics
-local right=math.min(162,x+w+6)
-headerH=headerH or 14
-g.setColor(0.00,0.01,0.015,0.34)
-g.polygon("fill",x+5,y+3,right,y+3,right,y+h+3,x+5,y+h+3,
-x,y+h-2,x,y+8)
-
-
-GoldCompat.setUIColor("surface",0.030,0.105,0.108,0.88)
-g.polygon("fill",x+5,y,right,y,right,y+h,x+5,y+h,x,y+h-5,x,y+5)
-GoldCompat.setUIColor("surface",0.040,0.175,0.165,0.80)
-g.polygon("fill",x+4,y+3,right,y+3,right,y+headerH,x+7,y+headerH,
-x+3,y+headerH-4)
-GoldCompat.setUIColor("trim",0.36,0.63,0.61,0.95)
-g.setLineWidth(1.2)
-g.line(x+6,y,right,y)
-g.line(x+6,y+h,right,y+h)
-g.line(x,y+6,x,y+h-6)
-GoldCompat.setUIColor("trim",0.12,0.45,0.38,0.86)
-g.rectangle("fill",x+8,y+headerH,right-x-10,1)
+GoldCompat.__runoffContext={g=love.graphics,setUIColor=GoldCompat.setUIColor}
+local function drawColosseumRunoffPanel(...)
+return modRef.exports.uiPresentation.runoffPanel(GoldCompat.__runoffContext,...)
 end
-
-local function drawColosseumRunoffSelection(x,y,w,h)
-local g=love.graphics
-local right=math.min(162,x+w+5)
-GoldCompat.setUIColor("selection",0.075,0.285,0.275,0.96)
-g.polygon("fill",x+6,y,right,y,right,y+h,x+6,y+h,x+2,y+h*0.5)
-GoldCompat.setUIColor("accent",1.00,0.34,0.16,1)
-g.polygon("fill",x+5,y+h*0.5,x+1,y+h*0.22,x+1,y+h*0.78)
+local function drawColosseumRunoffSelection(...)
+return modRef.exports.uiPresentation.runoffSelection(GoldCompat.__runoffContext,...)
 end
 
 
@@ -7704,17 +7681,7 @@ local oy = math.floor((sh - 144*scale) * 0.5 + 0.5)
 return ox, oy, scale
 end
 
-local function partySlotPanel(x,y,w,h,selected)
-local g = love.graphics
-g.setColor(0.14,0.14,0.13,1)
-roundedRect("fill",x,y,w,h,3)
-g.setColor(selected and {0.975,0.955,0.88,1} or {0.99,0.985,0.955,1})
-roundedRect("fill",x+2,y+2,w-4,h-4,2)
-if selected then
-g.setColor(0.72,0.58,0.28,1)
-roundedRect("line",x+3,y+3,w-6,h-6,2)
-end
-end
+local partySlotPanel=drawShopPanel
 
 local function partyHPBarFinal(x,y,w,mon)
 local g = love.graphics
@@ -7777,16 +7744,31 @@ text=tostring(text or "")
 local sc=math.max(0.001,partyRenderScale or 1)
 local size=math.max(minSize or 1,maxSize or 1)
 local floorSize=math.max(0.75,minSize or 1)
-while size>floorSize do
+local f,logicalW,logicalH
+repeat
 local pxSize=math.max(4,math.floor(size*sc+0.5))
-local f=font(pxSize*UI_TEXT_SCALE*GoldCompat.userTextScale())
-local logicalW=GoldCompat.measureFontWidth(f,text)/sc
-local logicalH=f:getHeight()/sc
+f=font(pxSize*UI_TEXT_SCALE*GoldCompat.userTextScale())
+logicalW=GoldCompat.measureFontWidth(f,text)/sc
+logicalH=f:getHeight()/sc
 if (not width or logicalW<=width)
 and (not maxHeight or logicalH<=maxHeight) then break end
-size=size-0.10
+if size<=floorSize then break end
+size=math.max(floorSize,size-0.10)
+until false
+local pxSize=math.max(4,math.floor(size*sc+0.5))
+local k=1
+if width then k=math.min(k,width*sc/math.max(1,logicalW*sc+1)) end
+if maxHeight then k=math.min(k,maxHeight*sc/math.max(1,logicalH*sc+1)) end
+
+
+if k<.999 then
+local g=love.graphics;g.push("all");g.origin()
+g.translate(math.floor((partyRenderOX or 0)+x*sc+0.5),
+math.floor((partyRenderOY or 0)+y*sc+0.5));g.scale(k,k)
+printText(text,0,0,pxSize,color,align,width and width*sc/k)
+g.pop();return
 end
-return partyText(text,x,y,math.max(floorSize,size),color,align,width)
+return partyText(text,x,y,size,color,align,width)
 end
 
 
@@ -7845,6 +7827,42 @@ elseif maxpp ~= nil then
 return tostring(maxpp)
 end
 return ""
+end
+
+-- Imported Gen 2 box records omit party-only stats. Calculate a display copy
+-- with the native rules; opening the PC must not rewrite the saved record.
+function GoldCompat.pcInformationMon(game,mon)
+if type(mon)~="table" or mon.isEgg or mon.egg then return mon end
+local gen2=GoldCompat.isGen2Game(game)
+local keys=gen2 and {"hp","attack","defense","speed","specialAttack","specialDefense"}
+or {"hp","attack","defense","speed","special"}
+local stats=type(mon.stats)=="table" and mon.stats or {}
+local complete=true
+for _,key in ipairs(keys) do if type(stats[key])~="number" then complete=false;break end end
+if complete then return mon end
+local def=game and game.data and game.data.pokemon and game.data.pokemon[mon.species]
+if not (def and type(def.baseStats)=="table") then return mon end
+GoldCompat.__pcStatProviders=GoldCompat.__pcStatProviders or {}
+local generation=gen2 and 2 or 1
+local provider=GoldCompat.__pcStatProviders[generation]
+if provider==nil then
+local ok,value=pcall(require,gen2 and "src.battle.gen2.Mon" or "src.pokemon.Stats")
+provider=ok and value or false;GoldCompat.__pcStatProviders[generation]=provider
+end
+local calc=provider and (gen2 and provider.stats or provider.calc)
+if type(calc)~="function" then return mon end
+local ok,calculated
+if gen2 then ok,calculated=pcall(calc,def.baseStats,mon.dvs or {},mon.level or 1,mon.statExp)
+else ok,calculated=pcall(calc,def,mon.level or 1,mon.dvs or {},mon.statExp) end
+if not ok or type(calculated)~="table" then return mon end
+local view,displayStats={},{}
+for key,value in pairs(mon) do view[key]=value end
+for key,value in pairs(stats) do displayStats[key]=value end
+for _,key in ipairs(keys) do
+if type(displayStats[key])~="number" then displayStats[key]=calculated[key] end
+end
+view.stats=displayStats;view.maxHp=tonumber(mon.maxHp) or displayStats.hp
+return view
 end
 
 local function partyStat(mon, ...)
@@ -8121,6 +8139,7 @@ end
 
 function GoldCompat.pcSelectedMon(game,state)
 if not state then return nil end
+if state.__colosseumPcSource then return state.__colosseumPcSource[state.index or 1] end
 
 if state.__gen3uiPCList then
 local title=tostring(state.title or ""):upper()
@@ -8894,7 +8913,7 @@ g.push("all")
 g.translate(ox,oy)
 g.scale(sc,sc)
 
-local title=tostring(state.title or "POKéMON PC")
+local title=tostring(state.__colosseumPcTitle or state.title or "POKéMON PC")
 drawPCBackground(game,title,
 ("BOX %d"):format(game.save.currentBox or 1))
 
@@ -8976,7 +8995,7 @@ end
 if not suppressFooter then
 g.setColor(0.08,0.08,0.08,1)
 g.rectangle("fill",4,127,152,13)
-local up=tostring(state.title or ""):upper()
+local up=tostring(state.__colosseumPcTitle or state.title or ""):upper()
 local footer="Choose a POKéMON."
 if up:find("WITHDRAW",1,true) then
 footer="Withdraw which POKéMON?"
@@ -9030,7 +9049,7 @@ end
 local drawPCListFinalLegacy=drawPCListFinal
 
 local function drawPCBadgeListFinal(game,state,suppressFooter)
-local title=GoldCompat.cleanPcText(tostring(state.title or "POKéMON PC"))
+local title=GoldCompat.cleanPcText(tostring(state.__colosseumPcTitle or state.title or "POKéMON PC"))
 :gsub("<PK><MN>","POKéMON"):gsub("#MON","POKéMON")
 if title:upper()=="CHANGE BOX" then
 return drawPCListFinalLegacy(game,state,suppressFooter)
@@ -9043,12 +9062,14 @@ g.push("all")
 g.translate(ox,oy)
 g.scale(sc,sc)
 
-drawPCBackground(game,title,("BOX %d"):format(game.save.currentBox or 1))
+drawPCBackground(game,title,state.__colosseumPcParty and "PARTY POKéMON"
+or ("BOX %d"):format(state.__colosseumPcBoxIndex or game.save.currentBox or 1))
 
 local mon=state.__colosseumPcSelected or GoldCompat.pcSelectedMon(game,state)
 local lx,ly,lw,lh=6,25,51,100
 drawPCGlassPanel(lx,ly,lw,lh,false)
 if mon then
+local statMon=GoldCompat.pcInformationMon(game,mon)
 local def=game.data.pokemon and game.data.pokemon[mon.species]
 local name=tostring(mon.nickname or (def and def.name) or "POKéMON")
 local nameSize=3.2
@@ -9075,7 +9096,7 @@ if not drew then
 PartyMenu.drawIcon(game,mon,lx+17,ly+18,true,state.blink or 0)
 end
 
-local maxhp=tonumber(mon.maxHp) or (mon.stats and tonumber(mon.stats.hp))
+local maxhp=tonumber(statMon.maxHp) or (statMon.stats and tonumber(statMon.stats.hp))
 if maxhp and maxhp>0 then
 local hpNow=tonumber(mon.hp) or maxhp
 local hp=("%d/%d"):format(hpNow,maxhp)
@@ -9101,7 +9122,7 @@ for i=1,4 do
 local move=mon.moves and mon.moves[i]
 local moveName=partyMoveName(game,move)
 local pp=partyMovePP(game,move)
-local yy=ly+59+(i-1)*5.8
+local yy=ly+59+(i-1)*4.8
 local size=2.05
 while size>1.42 and partyTextWidth(moveName,size)>moveNameW do size=size-0.10 end
 partyText(moveName,moveNameX,yy,size,{0.94,0.97,0.96,1},"left",moveNameW)
@@ -9111,29 +9132,32 @@ partyText(pp,ppRight-partyTextWidth(pp,1.48),yy+0.35,1.48,
 end
 end
 
-partyText("STATS",lx+5,ly+82.5,2.0,{0.40,0.96,0.60,1})
+partyText("STATS",lx+5,ly+78.5,2.0,{0.40,0.96,0.60,1})
 local gen2Stats=GoldCompat.isGen2Game(game)
 or (mon.stats and mon.stats.specialDefense~=nil)
 local statRows
 if gen2Stats then
 statRows={
-{"ATK",partyStat(mon,"attack","atk"),"DEF",partyStat(mon,"defense","def")},
-{"SPA",partyStat(mon,"specialAttack","spAtk"),"SDF",partyStat(mon,"specialDefense","spDef")},
-{"SPD",partyStat(mon,"speed","spd"),nil,nil},
+{"ATK",partyStat(statMon,"attack","atk"),"DEF",partyStat(statMon,"defense","def")},
+{"SPA",partyStat(statMon,"specialAttack","spAtk"),"SDF",partyStat(statMon,"specialDefense","spDef")},
+{"SPD",partyStat(statMon,"speed","spd"),nil,nil},
 }
 else
 statRows={
-{"ATK",partyStat(mon,"attack","atk"),"DEF",partyStat(mon,"defense","def")},
-{"SPD",partyStat(mon,"speed","spd"),"SPC",partyStat(mon,"special","spc","specialAttack")},
+{"ATK",partyStat(statMon,"attack","atk"),"DEF",partyStat(statMon,"defense","def")},
+{"SPD",partyStat(statMon,"speed","spd"),"SPC",partyStat(statMon,"special","spc","specialAttack")},
 }
 end
+local statRowH=math.min(4.8,(lh-2-83.5)/#statRows)
+local statColW=(lw-11)/2
 for i,row in ipairs(statRows) do
-local yy=ly+87.5+(i-1)*4.8
-partyText(row[1].." "..tostring(row[2]),lx+6,yy,1.68,{0.91,0.97,0.94,1})
+local yy=ly+83.5+(i-1)*statRowH
+GoldCompat.partyTextFitted(row[1].." "..tostring(row[2]),lx+6,yy,1.68,1.2,
+{0.91,0.97,0.94,1},"left",statColW,statRowH)
 if row[3] then
 local right=row[3].." "..tostring(row[4])
-partyText(right,lx+lw-5-partyTextWidth(right,1.68),yy,1.68,
-{0.91,0.97,0.94,1})
+GoldCompat.partyTextFitted(right,lx+lw-5-statColW,yy,1.68,1.2,
+{0.91,0.97,0.94,1},"right",statColW,statRowH)
 end
 end
 else
@@ -9155,7 +9179,7 @@ local selectedIndex=math.max(1,math.min(state.index or 1,math.max(1,#items)))
 local gridCount=math.min(20,#source)
 local gx,gy,gw,gh=60,25,94,100
 drawPCGlassPanel(gx,gy,gw,gh,false)
-local partyDeposit=(pcMode=="DEPOSIT"
+local partyDeposit=state.__colosseumPcParty or (pcMode=="DEPOSIT"
 or upperTitle:find("DEPOSIT",1,true)~=nil) and #source<=6
 if partyDeposit then
 
@@ -12626,12 +12650,23 @@ and (upperTitle=="BUY" or upperTitle=="SELL") then
 list.__gen3uiShopList=true
 list.__gen3uiShopSell=(upperTitle=="SELL")
 if featureEnabled("revampedPokeMartUI") then list.isOpaque=false end
-elseif list and GoldCompat.pcItemListTitle(title) then
+elseif list and (GoldCompat.pcItemListTitle(title) or (opts and opts.kind
+and opts.kind:match("^pc_item_"))) then
 list.__gen3uiPCItemList=true
-list.__gen3uiPCItemMode=upperTitle:gsub(" ITEM$","")
+list.__gen3uiPCItemMode=opts and opts.kind and opts.kind:match("^pc_item_(.+)$")
+and opts.kind:match("^pc_item_(.+)$"):upper() or upperTitle:gsub(" ITEM$","")
 if GoldCompat.itemPcPresentationEnabled() then list.isOpaque=false end
-elseif list and GoldCompat.pcListTitle(title) then
+elseif list and (GoldCompat.pcListTitle(title) or (opts and
+(opts.kind=="pc_box_deposit" or opts.kind=="pc_box_withdraw" or opts.kind=="pc_box_release"))) then
 list.__gen3uiPCList=true
+if opts and opts.kind and opts.kind:match("^pc_box_") then
+local mode=opts.kind:match("^pc_box_(.+)$")
+list.__colosseumPcMode=mode
+list.__colosseumPcSource=mode=="deposit" and game.save.party or Boxes.active(game.save)
+list.__colosseumPcTitle=mode=="deposit" and "PARTY (DEPOSIT)"
+or ("BOX %d (%s)"):format(game.save.currentBox or 1,mode:upper())
+upperTitle=list.__colosseumPcTitle
+end
 if featureEnabled("revampedPokemonPC") then list.isOpaque=false end
 local nativePCUpdate=list.update
 list.update=function(self,dt)
@@ -12666,7 +12701,7 @@ local gridCount=cancelIndex and cancelIndex-1 or count
 local index=math.max(1,math.min(tonumber(self.index) or 1,math.max(1,count)))
 local nextIndex=index
 if cancelIndex and index==cancelIndex then
-if up then nextIndex=self.__colosseumPcLastBadge or math.max(1,gridCount-3) end
+if up then nextIndex=math.max(1,math.min(gridCount,self.__colosseumPcLastBadge or math.max(1,gridCount-3))) end
 else
 self.__colosseumPcLastBadge=index
 local col=(index-1)%4
@@ -13707,7 +13742,8 @@ end
 
 
 function GoldCompat.drawColosseumModelStatus(game,mon,x,y,w,h,kind,why)
-local img=colosseumIconFrame(game,mon,true)
+local UI=GoldCompat.ColosseumUI
+local img=UI and UI.portraitFrame and UI.portraitFrame(game,mon,true)
 if not (img and State.visualCache) then return false end
 local G=love.graphics
 G.push("all");G.origin();G.setShader()
@@ -17001,7 +17037,7 @@ end
 function GoldCompat.sharedMenus()
 if not GoldCompat.__sharedMenus then
 GoldCompat.__sharedMenus=modRef.exports.menuPresentation.bind({
-graphics=love.graphics,compat=GoldCompat,state=State,partyMenu=PartyMenu,dexUI=DexUI,
+graphics=love.graphics,presentation=modRef.exports.uiPresentation,compat=GoldCompat,state=State,partyMenu=PartyMenu,dexUI=DexUI,
 roundedRect=roundedRect,finalCanvas=finalCanvas,font=font,
 finalText=finalText,finalTextFitted=finalTextFitted,finalTextWidth=finalTextWidth,
 partyCanvas=partyLogicalCanvas,partyText=partyText,partyTextWidth=partyTextWidth,
@@ -19308,23 +19344,26 @@ __colosseumPcSource=list,
 __colosseumPcSelected=selected,
 __colosseumPcFooter=prompt,
 __colosseumPcMode=box.mode,
+__colosseumPcParty=box.mode=="deposit" or (box.isParty and box:isParty()),
+__colosseumPcBoxIndex=box.boxIndex,
 })
 
 if box.phase=="submenu" then
 local ox,oy,sc=finalCanvas()
 local G=love.graphics
-local labels={"MOVE","STATS","CANCEL"}
+local labels=box.submenuRows and box:submenuRows() or {"MOVE","STATS","CANCEL"}
 local ix=box.submenuIndex or 1
 G.push("all"); G.translate(ox,oy); G.scale(sc,sc)
-drawPCGlassPanel(111,89,43,35,false)
-for i=1,3 do
+local menuY=math.max(69,124-(#labels*10+5))
+drawPCGlassPanel(111,menuY,43,#labels*10+5,false)
+for i=1,#labels do
 if i==ix then
-GoldCompat.drawPCSelectionRail(113,92+(i-1)*10,38,9)
+GoldCompat.drawPCSelectionRail(113,menuY+3+(i-1)*10,38,9)
 end
 end
 G.pop()
 for i,label in ipairs(labels) do
-finalText(label,118,94+(i-1)*10,2.4,
+finalText(label,118,menuY+5+(i-1)*10,2.4,
 i==ix and {1,1,1,1} or {0.73,0.90,0.91,1},ox,oy,sc)
 end
 end
@@ -19669,16 +19708,29 @@ if goldScreenEnabled("revampedPokemonPC") then
 self.isOpaque=false
 self.__gen3uiGoldOverlayKind="pc-box"
 end
-if goldScreenEnabled("revampedPokemonPC") and self.phase~="submenu" then
+if goldScreenEnabled("revampedPokemonPC") and self.phase~="submenu"
+and not self.cryWait and not self.messageFrames and not self.message then
 local input=self.game and self.game.input
 local left=input and input:wasPressed("left")
 local right=input and input:wasPressed("right")
 local up=input and input:wasPressed("up")
 local down=input and input:wasPressed("down")
 if left or right or up or down then
+
+
+local party=self.mode=="deposit" or (self.isParty and self:isParty())
+local insert=self.phase=="insert"
+local rawIndex=tonumber(self.index) or 1
+local col=(rawIndex-1)%4
+if self.mode=="move" and (left or right)
+and (insert or party or (left and col==0)
+or (right and (col==3 or rawIndex>=#self:list()))) then
+self:stepBox(left and -1 or 1)
+return
+end
 local list=self.list and self:list() or {}
 local gridCount=#list
-local cancelIndex=gridCount+1
+local cancelIndex=insert and math.max(1,gridCount) or gridCount+1
 local index=math.max(1,math.min(tonumber(self.index) or 1,cancelIndex))
 local nextIndex=index
 local mode=tostring(self.mode or ""):lower()
@@ -19699,8 +19751,8 @@ end
 if nextIndex<=gridCount then
 self.__colosseumPcLastBadge=nextIndex
 end
-elseif index==cancelIndex then
-if up then nextIndex=self.__colosseumPcLastBadge or math.max(1,gridCount-3) end
+elseif index==cancelIndex and not insert then
+if up then nextIndex=math.max(1,math.min(gridCount,self.__colosseumPcLastBadge or math.max(1,gridCount-3))) end
 else
 self.__colosseumPcLastBadge=index
 local col=(index-1)%4
@@ -19715,7 +19767,7 @@ if index+4<=gridCount then
 nextIndex=index+4
 else
 self.__colosseumPcLastBadge=index
-nextIndex=cancelIndex
+nextIndex=insert and 1 or cancelIndex
 end
 end
 end
@@ -23021,6 +23073,7 @@ end
 
 function GoldCompat.nativeOverlayRenderHidden(state)
 if not state then return false end
+if state.__colosseumPcBoxPicker and featureEnabled("revampedPokemonPC") then return true end
 local game=state.game or (modRef and modRef.game) or GoldCompat.game
 if not game then return false end
 local stack=game.stack and game.stack.states
@@ -25202,6 +25255,13 @@ end)
 
 mod.events:on("screen.pushed", function(payload)
 local state=type(payload)=="table" and payload.state or nil
+if state and GoldCompat.generation=="gen1" and state.kind=="pc_box_change"
+and type(state.items)=="table" then
+state.__gen3uiPCList=true
+state.__colosseumPcBoxPicker=true
+state.__colosseumPcTitle="CHANGE BOX"
+if featureEnabled("revampedPokemonPC") then state.isOpaque=false end
+end
 if State.visualCache then State.visualCache.bindDexAction(state) end
 if state and GoldCompat.generation=="gen1"
 and type(state)=="table" and state.holdsUIAnchors==true

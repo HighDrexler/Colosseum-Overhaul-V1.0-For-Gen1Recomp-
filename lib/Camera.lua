@@ -514,6 +514,11 @@ if oldh<.001 then nx,nz=1,0 else nx,nz=dx/oldh,dz/oldh end
 out.eye[1]=out.focus[1]+nx*hr
 out.eye[3]=out.focus[3]+nz*hr
 out.eye[2]=clamp(out.focus[2]+math.sin(pr)*radius,tonumber(spec.minY) or 6.5,tonumber(spec.maxY) or 32)
+local outer=tonumber(spec.maxEyeRadius)
+if outer then
+local r=math.sqrt(out.eye[1]^2+out.eye[3]^2)
+if r>outer then out.eye[1]=out.eye[1]*outer/r;out.eye[3]=out.eye[3]*outer/r end
+end
 return out
 end
 local arenaPoint,other,actionAxisSide,trainerVisible
@@ -1295,6 +1300,27 @@ function C:sendoutShot(ctx,arena,side)
 local pose=liveSendoutShot(ctx,arena,side)
 return pose and clampCameraVolume(hudSafePose(pose,"switch"),arena,"switch") or nil
 end
+function C:trainerDeploymentShot(ctx,arena,side,battlerId)
+local actor=side=='enemy' and Trainer or PlayerTrainer
+if side=='enemy' and actor and actor.forBattler then actor=actor:forBattler(battlerId) end
+local p=actor and actor.anchor and actor:anchor(3.5) or trainerPoint(side,3.5)
+local sign=side=="player" and 1 or -1
+return self:guardDeploymentPose({eye={p[1]-sign*11,p[2]+4,p[3]-sign*14},
+focus=p,fov=math.rad(37),curve=0},arena)
+end
+function C:guardDeploymentPose(pose,arena,alreadyAdapted)
+
+
+
+local a={};for k,v in pairs(arena or {})do a[k]=v end
+a.camera={};for k,v in pairs((arena or {}).camera or {})do a.camera[k]=v end
+local spec=safeCameraSpec(arena);a.camera.safe={}
+for k,v in pairs(spec)do a.camera.safe[k]=v end
+a.camera.safe.minRadius=math.min(12,tonumber(spec.minRadius)or 27)
+a.camera.safe.minY=math.min(tonumber(spec.minY)or 6.5,math.max(.8,pose.focus[2]+1.25))
+a.camera.safe.minFocusY=.5;a.camera.safe.maxFocusY=math.max(1,(tonumber(spec.maxY)or 32)-1)
+return clampCameraVolume(alreadyAdapted and pose or hudSafePose(pose,"switch"),a,"switch")
+end
 function C:guardPose(pose,arena,phase)
 
 
@@ -1303,6 +1329,11 @@ return clampCameraVolume(hudSafePose(pose,phase),arena,phase)
 end
 function C:guardFreePose(pose,arena)
 return clampCameraVolume(pose,arena,"free")
+end
+function C:guardVenuePose(pose,arena)
+
+if not (pose and arena and arena.camera and arena.camera.safe and arena.camera.safe.maxEyeRadius) then return pose end
+return clampCameraVolume(pose,arena,'free')
 end
 
 
@@ -1355,6 +1386,30 @@ elseif result=="run" or result=="escape" then
 return {eye={55,25,18},focus={player[1],5.8,player[3]-5},fov=math.rad(42)}
 elseif result=="caught" or result=="capture" or result=="captured" then
 return {eye={42,20,18},focus={enemy[1],5.9,enemy[3]},fov=math.rad(40)}
+end
+if (result=='win' or result=='victory') and trainerVisible(ctx,'enemy') then
+local b=battleOf(ctx);local actor=Trainer
+if actor.forBattler and b and b.trainerSpeechIndex==2 then actor=actor:forBattler(3) end
+local p=actor.cameraCenter and actor:cameraCenter(3.5) or actor:anchor(3.5)
+local fov=37
+if b and b.__cbeTrainerPairPresentation and Trainer.forBattler then
+local otherTrainer=Trainer:forBattler(3)
+local q=otherTrainer.cameraCenter and otherTrainer:cameraCenter(3.5) or otherTrainer:anchor(3.5)
+p={(p[1]+q[1])*.5,(p[2]+q[2])*.5,(p[3]+q[3])*.5}
+
+
+
+local size=ctx.services and ctx.services.renderSize or {}
+if (size.width or 1280)<(size.height or 720) then fov=47 end
+end
+
+
+
+local t=state.phaseAge*.16
+local right=2.4*math.sin(t);local depth=.8*(math.cos(t)-1)
+local n=math.sqrt(11*11+16*16)
+return {eye={p[1]+11+(16*right+11*depth)/n,p[2]+3.5,
+p[3]+16+(-11*right+16*depth)/n},focus=p,fov=math.rad(fov)}
 end
 local hasTrainer=trainerVisible(ctx,"player")
 if not hasTrainer then
@@ -1444,6 +1499,8 @@ state.focus[1]=clamp(state.focus[1],-42,42);state.focus[2]=clamp(state.focus[2],
 end
 
 local function requestedPhase(name,ctx)
+if name=="battle.presentation_command" then return "command" end
+if name=="battle.presentation_reaction" then return "reaction" end
 if name=="battle.move_used" or name=="battle.presentation_move" then return "attack" end
 if name=="battle.damage_dealt" or name=="battle.presentation_damage" then return "damage" end
 if name=="battle.status_inflicted" then return "reaction" end
@@ -1602,6 +1659,8 @@ if ok and tonumber(fd) then
 resultDelay=math.max(resultDelay,tonumber(fd)+.10)
 end
 end
+local tempo=V.BattleTempo and V.BattleTempo.presentationRate and V.BattleTempo.presentationRate(ctx.game) or speed
+if tempo>1 then resultDelay=math.max(.12,resultDelay/tempo) end
 
 
 state.resultAt=state.time+resultDelay
@@ -1733,6 +1792,12 @@ local gen3Owned=ctx and ctx.battle and ctx.battle.__cbeGeneration==3
 and V.Gen3Presentation and V.Gen3Presentation.session
 and V.Gen3Presentation.session.screen==ctx.battle
 local queueSync=ctx and ctx.battle and ctx.battle.__cbePresentationQueueSync==true
+-- Gen 1 resolves moves before their native announcement/animation queue is
+-- displayed. Its camera bridge supplies visible boundaries independently of
+-- actor/audio ownership, so calculation events must not preempt those shots.
+if ctx and ctx.services and ctx.services.gen1CameraQueueSync==true and
+(name=="battle.move_used" or name=="battle.damage_dealt"
+or name=="battle.status_inflicted" or name=="battle.turn_ended") then return end
 if queueSync and ((gen2 or gen3Owned) and
 (name=="battle.move_used" or name=="battle.damage_dealt" or name=="battle.fainted")) then return end
 if queueSync and name=="battle.fainted" then return end
@@ -1994,6 +2059,7 @@ out=V.Gen3BattleCamera.fit(ctx,out,phase,owner,key..':'..tostring(state.passiveS
 {sourceOwned=state.sourceExactLens==true,sourceChapter=state.sourcePresentationClock==true,
 trainerSide=trainerSide})
 end
+out=self:guardVenuePose(out,arena)
 return out,extra
 end
 return pose,extra
@@ -2011,6 +2077,7 @@ state.passiveSourcePlan=nil;state.passiveSourceTargetResolved=false
 state.passiveFloorFallbackActive=false;state.passiveFloorFallbackMoving=false
 state.manual=false;state.manualLocked=false;state.manualIdle=0;state.returning=false
 end
+function C:isManual() return state.manual end
 function C:status()
 local passive=PASSIVE_SHOTS[state.passiveShotIndex]
 local source=state.passiveSourcePlan

@@ -700,7 +700,8 @@ local function cacheSize(path)
 local mod=M.mod;if not (mod and mod.cache and type(mod.cache.info)=="function") then return nil end
 local ok,info=pcall(mod.cache.info,mod.cache,path);return ok and type(info)=="table" and tonumber(info.size) or nil
 end
-local PACK_ROWS_BATCH=64
+
+local PACK_SCALAR_LIMIT=192
 local function packPackedRows(group,stride)
 local lovePack=love and love.data and type(love.data.pack)=="function" and love.data.pack or nil
 local luaPack=type(string.pack)=="function" and string.pack or nil
@@ -708,11 +709,12 @@ if not lovePack and not luaPack then return nil,"float32 pack unavailable" end
 local packed=type(group)=="table" and group.verticesPacked or nil
 if type(packed)~="string" then return nil,"packed vertices unavailable" end
 local unpackArgs=table.unpack or unpack
-local rowFmt=string.rep("f",stride);local fullFmt=string.rep(rowFmt,PACK_ROWS_BATCH)
+local batch=math.max(1,math.floor(PACK_SCALAR_LIMIT/stride))
+local rowFmt=string.rep("f",stride);local fullFmt=string.rep(rowFmt,batch)
 local chunks={};local n=0;local values={};local rows=0;local valueCount=0;local totalRows=0
 local function flush()
 if rows==0 then return true end
-local fmt=rows==PACK_ROWS_BATCH and fullFmt or string.rep(rowFmt,rows)
+local fmt=rows==batch and fullFmt or string.rep(rowFmt,rows)
 local ok,bytes
 if lovePack then ok,bytes=pcall(lovePack,"string",fmt,unpackArgs(values,1,valueCount)) end
 if (not ok or type(bytes)~="string") and luaPack then
@@ -729,13 +731,13 @@ local count=0
 for token in line:gmatch("[^,]+") do count=count+1;valueCount=valueCount+1;values[valueCount]=tonumber(token) or 0 end
 if count~=stride then return nil,("packed stride mismatch %d/%d"):format(count,stride) end
 rows=rows+1;totalRows=totalRows+1
-if rows==PACK_ROWS_BATCH then local ok,why=flush();if not ok then return nil,why end end
+if rows==batch then local ok,why=flush();if not ok then return nil,why end end
 end
 local ok,why=flush();if not ok then return nil,why end
 if n==0 then return nil,"no packed vertex rows" end
 return table.concat(chunks),totalRows
 end
-local function prebuildRuntimeMesh(path,cache,stride,knownSourceSize)
+local function prebuildRuntimeMesh(path,cache,stride,knownSourceSize,prepared)
 local size=tonumber(knownSourceSize) or cacheSize(path)
 if not ((love and love.data and type(love.data.pack)=="function") or type(string.pack)=="function") then return false end
 
@@ -745,12 +747,22 @@ local compact={runtimeMeshVersion=RUNTIME_MESH_VERSION,sourcePath=path,extractor
 if size and size>0 then compact.sourceSize=size end
 for k,v in pairs(cache or {}) do if k~="groups" then compact[k]=v end end
 compact.groups={}
+local chunks={};local offset=0
 for i,g in ipairs(cache.groups or {}) do
-local bytes,count=packPackedRows(g,stride);if type(bytes)~="string" or not count then return false end
-local bin=runtimeBinPath(path,i);local ok=write(bin,bytes);if not ok then return false end
+local bytes,count
+if prepared and prepared[i]then bytes,count=prepared[i].bytes,prepared[i].count
+else bytes,count=packPackedRows(g,stride)end
+if type(bytes)~="string" or not count then return false end
+chunks[#chunks+1]=bytes
+local bin=runtimeBinPath(path,i)
 local row={};for k,v in pairs(g) do if k~="vertices" and k~="verticesPacked" then row[k]=v end end
-row.runtimeBin=bin;row.vertexCount=count;compact.groups[i]=row
+row.runtimeBin=bin;row.vertexCount=count;row.runtimeOffset=offset;row.runtimeBytes=#bytes
+compact.groups[i]=row;offset=offset+#bytes
 end
+if offset<=0 or offset>64*1024*1024 then return false end
+compact.runtimeStorage="bundle-f32-v1"
+compact.runtimeBundle=runtimeRoot(path).."/vertices.cbb";compact.runtimeBundleBytes=offset
+local ok=write(compact.runtimeBundle,table.concat(chunks));if not ok then return false end
 return write(runtimeMetaPath(path),"return "..serialize(compact).."\n")
 end
 
@@ -778,11 +790,17 @@ local out={stem};for _,v in ipairs(candidates or {}) do if v~=stem then out[#out
 end
 write=function(path,data,preserveExisting)
 local mod=M.mod; if not (mod and mod.cache and type(mod.cache.write)=="function") then return false,"cache unavailable" end
+local bundled=type(mod.cache.isModelBundlePath)=="function" and mod.cache:isModelBundlePath(path)
 local preserve=(preserveExisting==true or M.preserveExistingWrites==true)
 and (tostring(path):find("cache/movefx/",1,true)==1 or tostring(path):find("cache/capture/",1,true)==1)
+if bundled and preserve and Persist then
+local ok,kept,why=pcall(Persist.preserve,mod,"movefx",path,data)
+if not ok or why then return false,tostring(why or kept)end
+preserve=false
+end
 if preserve and Persist then
 local manifestTarget=nil
-if type(M.buildGenerated)=="table" then
+if type(M.buildGenerated)=="table" and not bundled then
 local seen=M.buildGeneratedSeen or {};M.buildGeneratedSeen=seen
 if not seen[path] then manifestTarget=M.buildGenerated end
 end
@@ -795,7 +813,7 @@ end
 local ok,a,b=pcall(mod.cache.write,mod.cache,path,data)
 if not ok then return false,("cache write failed [%s]: %s"):format(tostring(path),tostring(a)) end
 if a==false or a==nil then return false,("cache write failed [%s]: %s"):format(tostring(path),tostring(b or "cache write failed")) end
-if type(M.buildGenerated)=="table" then
+if type(M.buildGenerated)=="table" and not bundled then
 local seen=M.buildGeneratedSeen or {};M.buildGeneratedSeen=seen
 if not seen[path] then seen[path]=true;M.buildGenerated[#M.buildGenerated+1]=path end
 end
@@ -1192,23 +1210,41 @@ end
 local function packedWazaVertices(vertices,stride)
 local rows={}
 stride=tonumber(stride) or 8
+local pack=love and love.data and type(love.data.pack)=="function"and love.data.pack
+local batch=math.max(1,math.floor(PACK_SCALAR_LIMIT/stride));local format=string.rep("f",stride*batch)
+local chunks,values={},{};local buffered=0
+local function flush()
+if buffered==0 or not pack then return end
+local n=buffered*stride;local fmt=buffered==batch and format or string.rep("f",n)
+local ok,bytes=pcall(pack,"string",fmt,(table.unpack or unpack)(values,1,n))
+if ok and type(bytes)=="string"then chunks[#chunks+1]=bytes else pack=nil;chunks={}end
+buffered=0
+end
 for _,v in ipairs(vertices or {}) do
 local parts={}
-for i=1,stride do parts[i]=("%.9g"):format(tonumber(v[i]) or 0) end
-rows[#rows+1]=table.concat(parts,",")
+for i=1,stride do
+parts[i]=("%.9g"):format(tonumber(v[i]) or 0)
+
+
+if pack then values[buffered*stride+i]=tonumber(parts[i])or 0 end
 end
-return table.concat(rows,"\n")
+rows[#rows+1]=table.concat(parts,",")
+if pack then buffered=buffered+1;if buffered==batch then flush()end end
+end
+flush()
+return table.concat(rows,"\n"),pack and {bytes=table.concat(chunks),count=#(vertices or {})}or nil
 end
 local function packWazaGroups(groups,stride)
-local out={}
+local out,prepared={},{}
 for gi,g in ipairs(groups or {}) do
 local copy={}
 for k,v in pairs(g) do if k~="vertices" then copy[k]=v end end
 copy.vertexStride=stride
-copy.verticesPacked=packedWazaVertices(g.vertices,stride)
+local packed,binary=packedWazaVertices(g.vertices,stride)
+copy.verticesPacked=packed;prepared[gi]=binary
 out[gi]=copy
 end
-return out
+return out,prepared
 end
 
 local function wazaModelPage(base,poses,startFrame,endFrame,textureSpecs)
@@ -1228,8 +1264,9 @@ out.vertices[vi]=row
 end
 groups[gi]=out
 end
+local packed,prepared=packWazaGroups(groups,44)
 return {revision=3,source="GC6E01 WazaSequence type-2 HSD animated page",startFrame=startFrame,endFrame=endFrame,
-morphFrames=slotCount,groups=packWazaGroups(groups,44),bounds=base.bounds,vertexCount=base.vertexCount}
+morphFrames=slotCount,groups=packed,bounds=base.bounds,vertexCount=base.vertexCount},prepared
 end
 
 
@@ -1237,7 +1274,7 @@ end
 
 
 
-local function compileWazaModel(blob,entry,stem,phase,opts)
+local function compileWazaModelBody(blob,entry,stem,phase,opts)
 if not (HSD and type(HSD.extractModel)=="function" and type(blob)=="string"
 and type(entry)=="table" and tonumber(entry.dataOffset) and tonumber(entry.dataSize)) then
 return nil,"Waza model extractor unavailable"
@@ -1258,7 +1295,7 @@ local keepParts=opts and opts.partIndices and #opts.partIndices>0
 
 
 
-local decodeOpts={checkpoint=checkpoint,textures=true,sourceTextureAnimation=true,allowTransformOnly=true,preserveJointMatrices=keepParts,semanticRootsOnly=true,minVertices=3,maxRoots=48,maxVertices=90000,maxDisplayOps=300000,maxJobjs=4096,maxDobjs=12000,maxPobjs=20000}
+local decodeOpts={decodeSession={},checkpoint=checkpoint,textures=true,sourceTextureAnimation=true,allowTransformOnly=true,preserveJointMatrices=keepParts,semanticRootsOnly=true,minVertices=3,maxRoots=48,maxVertices=90000,maxDisplayOps=300000,maxJobjs=4096,maxDobjs=12000,maxPobjs=20000}
 local model,err=HSD.extractModel(source,decodeOpts)
 if not model then return nil,err or "Waza HSD model decode failed" end
 local bindModel=model
@@ -1339,6 +1376,20 @@ if complete then materialAnimation={revision=1,source="GC6E01 HSD_MatAnimJoint",
 elseif why then materialAnimationBlocker=tostring(why) end
 end
 local animated=false;local poses={[0]=model};local maxMotion=0;local partsMotion=0
+local normalizationBounds={min={math.huge,math.huge,math.huge},max={-math.huge,-math.huge,-math.huge}}
+local partTracks={}
+local function observe(fr,pose)
+local b=pose.bounds
+if b and b.min and b.max then for k=1,3 do
+normalizationBounds.min[k]=math.min(normalizationBounds.min[k],b.min[k])
+normalizationBounds.max[k]=math.max(normalizationBounds.max[k],b.max[k])
+end end
+if decodeOpts.preserveJointMatrices then for _,index in ipairs(opts.partIndices)do
+partTracks[index]=partTracks[index]or{}
+partTracks[index][fr+1]=pose.jointMatrices and pose.jointMatrices[index+1]
+end end
+end
+observe(0,model)
 if endFrame>0 and type(HSD.extractNativePose)=="function" then
 
 
@@ -1348,7 +1399,7 @@ for _,fr in ipairs(probeFrames) do
 if not poses[fr] then
 local pose=select(1,HSD.extractNativePose(bindModel,0,fr,decodeOpts))
 if pose and wazaModelTopologyMatches(model,pose) then
-poses[fr]=pose;maxMotion=math.max(maxMotion,wazaModelMotion(model,pose))
+poses[fr]=pose;observe(fr,pose);maxMotion=math.max(maxMotion,wazaModelMotion(model,pose))
 for _,part in ipairs((opts and opts.partIndices) or {}) do
 local a=model.jointMatrices and model.jointMatrices[part+1]
 local b=pose.jointMatrices and pose.jointMatrices[part+1]
@@ -1361,48 +1412,43 @@ animated=maxMotion>1e-5
 end
 
 local pages={}
-if animated or partsMotion>1e-5 then
-
-
-for fr=1,endFrame do
-if not poses[fr] then
+local function framePose(fr)
+if poses[fr]then return poses[fr]end
 local pose,why=HSD.extractNativePose(bindModel,0,fr,decodeOpts)
-if not pose then return nil,("Waza model animation frame %d decode failed: %s"):format(fr,tostring(why)) end
-if not wazaModelTopologyMatches(model,pose) then return nil,("Waza model animation topology changed at frame %d"):format(fr) end
-poses[fr]=pose
-end
-end
+if not pose then return nil,("Waza model animation frame %d decode failed: %s"):format(fr,tostring(why))end
+if not wazaModelTopologyMatches(model,pose)then return nil,("Waza model animation topology changed at frame %d"):format(fr)end
+poses[fr]=pose;observe(fr,pose);return pose
 end
 if animated then
 local start=0
 while start<endFrame do
 local stop=math.min(endFrame,start+WAZA_MODEL_PAGE_SLOTS)
-local page=wazaModelPage(poses[start] or model,poses,start,stop,textureSpecs)
+
+
+
+for fr=start+1,stop do local pose,why=framePose(fr);if not pose then return nil,why end end
+local page,prepared=wazaModelPage(poses[start] or model,poses,start,stop,textureSpecs)
 local path=("cache/movefx/%s/models/%s_%03d_anim_%03d.lua"):format(stem,phase,ident,#pages+1)
 local body="return "..serialize(page).."\n"
 local okWrite,why=write(path,body)
 if not okWrite then return nil,why end
 
 
-pcall(prebuildRuntimeMesh,path,page,44,#body)
+pcall(prebuildRuntimeMesh,path,page,44,#body,prepared)
 pages[#pages+1]={cache=path,startFrame=start,endFrame=stop,morphFrames=stop-start}
+for fr=start,stop-1 do poses[fr]=nil end
 start=stop
 end
+elseif partsMotion>1e-5 then
+for fr=1,endFrame do
+local pose,why=framePose(fr);if not pose then return nil,why end
+poses[fr]=nil
+end
 end
 
 
 
 
-local normalizationBounds={min={math.huge,math.huge,math.huge},max={-math.huge,-math.huge,-math.huge}}
-for _,pose in pairs(poses) do
-local b=pose.bounds
-if b and b.min and b.max then
-for k=1,3 do
-normalizationBounds.min[k]=math.min(normalizationBounds.min[k],b.min[k])
-normalizationBounds.max[k]=math.max(normalizationBounds.max[k],b.max[k])
-end
-end
-end
 if normalizationBounds.min[1]==math.huge then normalizationBounds=model.bounds end
 
 
@@ -1414,8 +1460,7 @@ local tracks={};local frames=partsMotion>1e-5 and endFrame or 0
 for _,index in ipairs(opts.partIndices) do
 local track={}
 for fr=0,frames do
-local pose=poses[fr] or model
-local mat=pose.jointMatrices and pose.jointMatrices[index+1]
+local mat=partTracks[index]and partTracks[index][fr+1]
 if not mat then return nil,"Waza linked part missing: "..tostring(index) end
 track[fr+1]=mat
 end
@@ -1435,8 +1480,9 @@ groups[#groups+1]=wazaModelGroupShell(g,textureSpecs[gi]);groups[#groups].vertic
 end
 if #groups==0 and not model.transformOnly then return nil,"Waza effect model has no drawable groups" end
 local cachePath=("cache/movefx/%s/models/%s_%03d.lua"):format(stem,phase,ident)
+local packedGroups,prepared=packWazaGroups(groups,8)
 local cache={revision=4,source="GC6E01 WazaSequence type-2 HSD",phase=phase,identifier=entry.identifier,
-transformOnly=model.transformOnly==true,parts=parts,frameZeroApplied=frameZeroApplied,normalizationBounds=normalizationBounds,bounds=model.bounds,vertexCount=model.vertexCount,groups=packWazaGroups(groups,8),
+transformOnly=model.transformOnly==true,parts=parts,frameZeroApplied=frameZeroApplied,normalizationBounds=normalizationBounds,bounds=model.bounds,vertexCount=model.vertexCount,groups=packedGroups,
 textureAnimation=textureAnimation,textureAnimationBlocker=textureAnimationBlocker,
 materialAnimation=materialAnimation,materialAnimationBlocker=materialAnimationBlocker,
 animation={clip=0,endFrame=endFrame,frameCount=endFrame+1,animated=animated,textureAnimated=textureAnimation~=nil,
@@ -1444,13 +1490,23 @@ materialAnimated=materialAnimation~=nil,partsAnimated=partsMotion>1e-5,maxMotion
 local cacheBody="return "..serialize(cache).."\n"
 local okWrite,why=write(cachePath,cacheBody)
 if not okWrite then return nil,why end
-if not model.transformOnly then pcall(prebuildRuntimeMesh,cachePath,cache,8,#cacheBody) end
+if not model.transformOnly then pcall(prebuildRuntimeMesh,cachePath,cache,8,#cacheBody,prepared) end
 return {cache=cachePath,groups=#groups,vertices=tonumber(model.vertexCount) or 0,textures=textureCount,bounds=model.bounds,
 transformOnly=model.transformOnly==true,parts=parts,frameZeroApplied=frameZeroApplied,normalizationBounds=normalizationBounds,
 textureAnimation=textureAnimation,textureAnimationBlocker=textureAnimationBlocker,
 materialAnimation=materialAnimation,materialAnimationBlocker=materialAnimationBlocker,
 animation={clip=0,endFrame=endFrame,frameCount=endFrame+1,animated=animated,textureAnimated=textureAnimation~=nil,
 materialAnimated=materialAnimation~=nil,partsAnimated=partsMotion>1e-5,maxMotion=maxMotion,pages=pages}}
+end
+
+local function compileWazaModel(blob,entry,stem,phase,opts)
+local cache=M.mod and M.mod.cache
+if cache and type(cache.bundleModel)=="function"then
+local ident=tonumber(entry and entry.identifier)or tonumber(entry and entry.index)or 0
+local path=("cache/movefx/%s/models/%s_%03d.lua"):format(stem,phase,ident)
+return cache:bundleModel(path,function()return compileWazaModelBody(blob,entry,stem,phase,opts)end,M.buildGenerated)
+end
+return compileWazaModelBody(blob,entry,stem,phase,opts)
 end
 
 
@@ -1476,12 +1532,13 @@ groups[#groups+1]=wazaModelGroupShell(g,textureSpecs[gi]);groups[#groups].vertic
 end
 if #groups==0 then return nil,"capture member HSD root has no drawable groups" end
 local cachePath=("cache/movefx/%s/models/%s_member_%s.lua"):format(stem,phase,safe)
+local packedGroups,prepared=packWazaGroups(groups,8)
 local cache={revision=4,source="GC6E01 snatch member HSD static root",phase=phase,identifier=safe,
-bounds=model.bounds,vertexCount=model.vertexCount,groups=packWazaGroups(groups,8),
+bounds=model.bounds,vertexCount=model.vertexCount,groups=packedGroups,
 animation={clip=0,endFrame=0,frameCount=1,animated=false,maxMotion=0,pages={}}}
 local cacheBody="return "..serialize(cache).."\n"
 local okWrite,why=write(cachePath,cacheBody);if not okWrite then return nil,why end
-pcall(prebuildRuntimeMesh,cachePath,cache,8,#cacheBody)
+pcall(prebuildRuntimeMesh,cachePath,cache,8,#cacheBody,prepared)
 return {cache=cachePath,groups=#groups,vertices=tonumber(model.vertexCount) or 0,textures=textureCount,bounds=model.bounds,
 animation={clip=0,endFrame=0,frameCount=1,animated=false,maxMotion=0,pages={}},staticSource=true,memberRoot=true}
 end
@@ -2403,6 +2460,7 @@ if not isolated then M.negative[negKey]=why end
 return nil,why
 end
 
+local function buildBank()
 local banks,errors={},nil
 if requestedPhases then
 local allowed={};for _,phase in ipairs(requestedPhases)do allowed[phase]=true end
@@ -2712,8 +2770,15 @@ if #meta.textures==0 then meta.duration=.6;meta.note=errors or "WZX has no decod
 local path=metadataPath(key)
 local saved,saveWhy=write(path,"return "..serialize(meta).."\n")
 if not saved then return nil,saveWhy end
-if not isolated then M.memory[key]=meta end
 return meta
+end
+local meta,why
+local cache=M.mod and M.mod.cache
+if cache and type(cache.bundleModel)=="function"then
+meta,why=cache:bundleModel(metadataPath(key),buildBank,M.buildGenerated)
+else meta,why=buildBank()end
+if meta and not isolated then M.memory[key]=meta end
+return meta,why
 end
 
 

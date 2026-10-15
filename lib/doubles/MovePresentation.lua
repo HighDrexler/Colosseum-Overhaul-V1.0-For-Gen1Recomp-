@@ -470,7 +470,10 @@ end
 function M.actorDt(s,r,dt)
 local m=s and s.movePresentation
 local TP=V.TrainerPerformance
-if m then dt=M.presentationDt(s,dt)
+local resting=r.actor and r.actor.state=='idle' and not r.actor.pendingFaint and not r.actor.pendingRecall
+if resting and TP and TP.pokemonDt then dt=TP.pokemonDt(s and s.context,dt,r.actor)
+elseif m then dt=M.presentationDt(s,dt)
+elseif s and s.generation==3 then dt=M.presentationDt(s,dt)
 elseif TP and TP.pokemonDt then dt=TP.pokemonDt(s and s.context,dt,r.actor) end
 if not m or not r.actor or r.actor.state=='faint' or r.actor.pendingFaint then return dt end
 for _,track in ipairs(m.channels or {m}) do

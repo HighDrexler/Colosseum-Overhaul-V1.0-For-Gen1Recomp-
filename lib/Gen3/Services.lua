@@ -142,15 +142,25 @@ end
 end
 end end
 end
-function S.wrap(N,title,render,owner)
+local displayAdapter
+local function displayContext(w,h)
+local cached=displayAdapter
+if not cached or cached.w~=w or cached.h~=h or cached.graphics~=love.graphics then
+cached={w=w,h=h,graphics=love.graphics,context=S.canvas(w,h)}
+displayAdapter=cached
+end
+local c=cached.context;c.modelOwner=nil;c.footerControls=nil
+return c
+end
+function S.wrap(N,title,render,owner,captureNative)
 if not N or type(N.draw)~='function' or S.wrapped[N] then return end
 local original=N.draw;owner=owner or N;S.wrapped[N]=original
 V.Gen3MenuScene.register(owner)
 N.draw=function(...)
 if not S.alive(owner) or not V.Gen3Overlay.available() then return original(...) end
-local events=S.capture(original,...);local args={...}
+local events=captureNative==false and {} or S.capture(original,...);local args={...}
 return V.Gen3Overlay.paint(function(w,h)
-local c=S.canvas(w,h);c.header(title)
+local c=displayContext(w,h);c.header(title)
 if render then render(c,N,events,unpack(args)) else
 if title~='PC / STORAGE' and title~='SAVE GAME' and not (title=='POKé MART' and N.mode=='root') then c.panel(0,5,240,144) end
 S.replay(c,events)
@@ -267,7 +277,8 @@ PC[key]=function(...)
 local args={...};local session=(key=='show' and args[1] and args[1].session) or PC._session
 if not S.rse(session) then return original(...) end
 local R=req('src.core.game3.rom_text');local added={}
-for from,to in pairs({Text_AccessWhichPC='gText_WhichPCShouldBeAccessed',gText_WhatWouldYouLikeToDo='gText_WhatWouldYouLike'}) do
+local access=R.has('Text_WhichPCShouldBeAccessed') and 'Text_WhichPCShouldBeAccessed' or 'gText_WhichPCShouldBeAccessed'
+for from,to in pairs({Text_AccessWhichPC=access,gText_WhatWouldYouLikeToDo='gText_WhatWouldYouLike'}) do
 if not R.has(from) and R.overrides[from]==nil and R.has(to) then R.overrides[from]=R.ir(to);added[#added+1]=from end
 end
 local result={pcall(original,...)};for _,from in ipairs(added) do R.overrides[from]=nil end

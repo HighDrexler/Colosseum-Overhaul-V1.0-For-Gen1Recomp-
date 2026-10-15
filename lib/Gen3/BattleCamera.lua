@@ -68,21 +68,24 @@ end
 end
 return {id=r.battlerId,center=center,height=h,radius=math.max(.75,radius),ground=ground}
 end
-function C.trainerSubject(ctx,side)
+function C.trainerSubject(ctx,side,battlerId)
 local actor=side=='player' and V.PlayerTrainer or V.Trainer
+if side=='enemy' and battlerId==3 and actor and actor.forBattler then actor=actor:forBattler(3) end
 if not (actor and type(actor.anchor)=='function') then return nil end
 local height=6.9
-if type(actor.status)=='function' then
-local ok,status=pcall(actor.status,actor)
-local measured=ok and type(status)=='table' and tonumber(status.battleHeight)
+if type(actor.battleHeight)=='function' or type(actor.status)=='function' then
+local ok,value
+if type(actor.battleHeight)=='function' then ok,value=pcall(actor.battleHeight,actor)
+else ok,value=pcall(actor.status,actor);value=ok and type(value)=='table' and value.battleHeight end
+local measured=ok and tonumber(value)
 if finite(measured) and measured>2 and measured<16 then height=measured end
 end
-local ok,p=pcall(actor.anchor,actor,height*.5)
+local ok,p=pcall(actor.cameraCenter or actor.anchor,actor,height*.5)
 if not ok or type(p)~='table' then return nil end
 local x,y,z=tonumber(p[1]),tonumber(p[2]),tonumber(p[3])
 if not (finite(x) and finite(y) and finite(z)) then return nil end
 
-return {id='trainer:'..side,center={x,y,z},height=height,radius=height*.53,ground=0}
+return {id='trainer:'..side..(battlerId==3 and ':2' or ''),center={x,y,z},height=height,radius=height*.53,ground=0}
 end
 function C.project(p,v,aspect)
 local dx,dy,dz=p.focus[1]-p.eye[1],p.focus[2]-p.eye[2],p.focus[3]-p.eye[3]
@@ -274,7 +277,7 @@ local safe={};for k,v in pairs(options)do safe[k]=v end
 safe.sourceOwned=false;safe.sourceChapter=false;options=safe
 state.sourceRescue=nil
 end
-local occlusionGuard=phase=='attack' or phase=='damage' or phase=='reaction'
+local occlusionGuard=phase=='attack' or phase=='damage' or phase=='reaction' or phase=='deployment'
 if (options.sourceOwned or options.sourceChapter or occlusionGuard) and not faint then
 local rescue=state.sourceRescue
 if rescue and rescue.key~=key then rescue=nil;state.sourceRescue=nil end
@@ -311,13 +314,28 @@ local size=(ctx.services or {}).renderSize or {}
 local aspect=(size.width or 1280)/math.max(1,size.height or 720)
 local raw={}
 if not exempt then
-if phase=='passive' and options.trainerSide then
-local trainer=C.trainerSubject(ctx,options.trainerSide)
+if phase=='exit' and ctx.battle and ctx.battle.kind=='trainer' then
+local id=ctx.battle.trainerSpeechIndex==2 and 3 or 1
+local trainer=C.trainerSubject(ctx,'enemy',id)
 if trainer then raw[1]=trainer end
+if ctx.battle.__cbeTrainerPairPresentation then
+local second=C.trainerSubject(ctx,'enemy',3);if second then raw[#raw+1]=second end
 end
-if phase=='faint' or phase=='attack' or phase=='damage' then
+end
+if phase=='passive' and options.trainerSide then
+local trainer=C.trainerSubject(ctx,options.trainerSide,options.trainerId)
+if trainer then raw[1]=trainer end
+if options.trainerIds and options.trainerSide=='enemy' and ctx.battle
+and (ctx.battle.trainerB or ctx.battle.__cbeTrainerPairPresentation) then
+for _,id in ipairs(options.trainerIds)do if id~=options.trainerId then
+local second=C.trainerSubject(ctx,'enemy',id);if second then raw[#raw+1]=second end
+end end
+end
+end
+if phase=='faint' or phase=='attack' or phase=='damage' or phase=='deployment' then
 local r=P.records[targetId]
-if r and (r.visible or r.pendingFaint) and not r.faintedVisual then raw[1]=C.subject(ctx,r) end
+if options.deployment and options.subject then raw[1]=options.subject
+elseif r and (r.visible or r.pendingFaint) and not r.faintedVisual then raw[1]=C.subject(ctx,r) end
 end
 if #raw==0 then
 for id=0,3 do local r=P.records[id]
@@ -329,6 +347,9 @@ for _,side in ipairs({'player','enemy'}) do
 local provider=side=='player' and V.PlayerTrainer or V.Trainer
 if provider and provider.shouldRender and provider:shouldRender(ctx) then
 local trainer=C.trainerSubject(ctx,side);if trainer then raw[#raw+1]=trainer end
+if side=='enemy' and ctx.battle and (ctx.battle.trainerB or ctx.battle.__cbeTrainerPairPresentation) then
+local second=C.trainerSubject(ctx,'enemy',3);if second then raw[#raw+1]=second end
+end
 end
 end
 end

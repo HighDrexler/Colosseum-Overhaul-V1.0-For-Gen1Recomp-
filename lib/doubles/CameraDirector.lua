@@ -77,8 +77,26 @@ if phase=='faint' then return 'faint' end
 if phase=='recall' or phase=='trainer-throw' or phase=='sendout-reveal' then return 'switch' end
 return 'passive'
 end
-local function guard(p,ctx,phase)
+local function guard(p,ctx,phase,alreadyAdapted)
+if (phase=='sendout-reveal' or phase=='recall') and V.Camera and V.Camera.guardDeploymentPose then
+return V.Camera:guardDeploymentPose(p,ctx.arena,alreadyAdapted)
+end
 return V.Camera and V.Camera.guardPose and V.Camera:guardPose(p,ctx.arena,guardPhase(phase)) or p
+end
+function C.deploymentPose(base,ctx,p,height,slot)
+local side=slot:match('^player') and 'player' or 'enemy'
+local a,b=ctx.arena[side],ctx.arena[side=='player' and 'enemy' or 'player']
+local dx,dz=b[1]-a[1],b[2]-a[2]
+local length=math.max(.001,math.sqrt(dx*dx+dz*dz));dx,dz=dx/length,dz/length
+local lane=slot:find('left',1,true) and -1 or 1
+local size=(ctx.services or {}).renderSize or {};local aspect=(size.width or 1280)/math.max(1,size.height or 720)
+local fov=math.rad(aspect<1 and 43 or 37.5)
+local range=math.max(12,height*2.35)/clamp(aspect,.56,1)
+
+
+return {focus={p[1],p[2],p[3]},
+eye={p[1]+(dx*.68-dz*.74*lane)*range,p[2]+math.max(2,range*.14),
+p[3]+(dz*.68+dx*.74*lane)*range},fov=fov,curve=0}
 end
 local function sideOfAxis(base,source,target)
 local dx,dz=target[1]-source[1],target[3]-source[3]
@@ -143,12 +161,18 @@ local accelerated=Pacing and Pacing.speed(ctx,s,V and V.mod)>1.05
 return MOBILE_RUNTIME and not accelerated or false
 end
 function C.pose(base,s,ctx)
+if ctx and ctx.battle and ctx.battle.result then return base end
 if not (s and s.core and ctx and V.DoublesPresenter)then return C.neutral(base)end
 local e=s.core.currentEvent;local m=s.movePresentation
 local clock=tonumber(s.visualClock) or 0
 if clock~=clock or math.abs(clock)==math.huge then clock=0 end
 local state=s.doublesCamera
 local smoothEdits=smoothFastEdits(ctx,s)
+local deployment=e and (e.kind=='send' or e.kind=='recall') and e.presentationPending==true
+
+
+
+if deployment then smoothEdits=false end
 
 
 if not state or state.core~=s.core then
@@ -157,6 +181,7 @@ masterYaw=math.atan2(base.eye[1]-base.focus[1],base.eye[3]-base.focus[3])}
 s.doublesCamera=state
 end
 state.opticalSmoothing=smoothEdits
+if deployment then state.mobileEdit=nil end
 state.sourcePresentationClock=false
 state.mobileSourceInterpolated=false
 if not e then
@@ -266,24 +291,24 @@ local edit=state.mobileEdit or finishingSourceEdit
 if MOBILE_RUNTIME and edit and state.target then
 edit.age=edit.age+dt
 state.pose=blendPose(edit.from,state.target,edit.age/edit.duration)
-if not edit.sourceExact then state.pose=guard(state.pose,ctx,state.phase) end
+if not edit.sourceExact then state.pose=guard(state.pose,ctx,state.phase,true) end
 state.mobileEdit=edit.age<edit.duration and edit or nil
 end
 return copy(state.pose)
 end
 elseif p and kind=='send' and not e.alreadyPresented then
 local send=r and r.sendout
-if send and (send.phase or 0)<.79 and V.Camera and V.Camera.sendoutShot then
+if send and not send.releaseStarted and (send.phase or 0)<1 and V.Camera and V.Camera.sendoutShot then
 local side=e.slot:match('^player') and 'player' or 'enemy'
-pose=V.Camera:sendoutShot(ctx,ctx.arena,side);phase='trainer-throw'
+local paired=side=='enemy' and ctx.battle and (ctx.battle.trainerB or ctx.battle.__cbeTrainerPairPresentation)
+pose=paired and V.Camera:trainerDeploymentShot(ctx,ctx.arena,side,e.slot=='enemy-right'and 3 or 1)
+or V.Camera:sendoutShot(ctx,ctx.arena,side);phase='trainer-throw'
 end
 if not pose then
-phase='sendout-reveal';focus=p;range=math.max(21,h*3.15);fov=math.rad(37.5)
-yaw=yaw+(e.slot:match('^player') and -.30 or .30)+variant*.12;elevation=.20
+phase='sendout-reveal';pose=C.deploymentPose(base,ctx,p,h,e.slot)
 end
 elseif p and kind=='recall' then
-phase='recall';focus=p;range=math.max(24,h*3.35);fov=math.rad(39)
-yaw=yaw+(e.slot:match('^player') and -.38 or .38);elevation=.29
+phase='recall';pose=C.deploymentPose(base,ctx,p,h,e.slot)
 elseif p and kind=='faint' then
 phase='faint';focus={p[1],(ctx.groundY or 0)+h*.32,p[3]};range=math.max(22,h*3.0)
 yaw=yaw+(e.slot:match('^player') and .36 or -.36)+variant*.06;elevation=.22;fov=math.rad(36.5)
@@ -370,7 +395,7 @@ if smoothEdits and state.mobileEdit then
 local edit=state.mobileEdit
 edit.age=edit.age+dt
 state.pose=blendPose(edit.from,pose,edit.age/edit.duration)
-state.pose=guard(state.pose,ctx,phase)
+state.pose=guard(state.pose,ctx,phase,true)
 if edit.age>=edit.duration then state.mobileEdit=nil end
 elseif editBoundary then
 
@@ -384,7 +409,7 @@ else
 local rate=phase=='command' and 3.0 or (phase=='transit' and 5.2 or 7.0)
 local a=1-math.exp(-dt*rate)
 state.pose=orbitBlend(state.pose,pose,a)
-state.pose=guard(state.pose,ctx,phase)
+state.pose=guard(state.pose,ctx,phase,true)
 end
 else state.pose=copy(pose)end
 state.phase=phase;state.eventId=eventId;state.eventRecord=e;state.target=pose
@@ -393,6 +418,7 @@ end
 
 local directedPose=C.pose
 function C.pose(base,s,ctx)
+if ctx and ctx.battle and ctx.battle.result then return base end
 local pose=directedPose(base,s,ctx)
 if not (Pacing and s and s.core and ctx and pose) then return pose end
 local speed=Pacing.speed(ctx,s,V and V.mod);local cfg=Pacing.config(speed)
@@ -418,18 +444,24 @@ local seed=base
 
 
 local target=cfg.active and (c.target or pose) or pose
-if cfg.active and not c.sourceDriven and V.Camera and V.Camera.guardPacedPose then
+local deployment=c.phase=='sendout-reveal' or c.phase=='recall'
+if cfg.active and deployment and V.Camera and V.Camera.guardDeploymentPose then
+target=V.Camera:guardDeploymentPose(target,ctx.arena,true)
+elseif cfg.active and not c.sourceDriven and V.Camera and V.Camera.guardPacedPose then
 target=V.Camera:guardPacedPose(target,ctx.arena)
 seed=V.Camera:guardPacedPose(base,ctx.arena)
 end
+local heldDeployment=e and (kind=='send' or kind=='recall') and e.presentationPending==true
 paced,s.cameraComfort=Pacing.apply(s.cameraComfort,target,{speed=speed,clock=s.visualClock,
-sourcePresentation=c.sourcePresentationClock and not cfg.active,key=key,
+sourcePresentation=heldDeployment or (c.sourcePresentationClock and not cfg.active),key=key,
 critical=kind=="send" or kind=="recall" or kind=="faint" or kind=="end",seed=seed})
 if paced and s.cameraComfort.adapted then
 
 
 c.sourceRetailExact=false;c.comfortAdapted=true
-if cfg.active and not c.sourceDriven and V.Camera and V.Camera.guardPacedPose then
+if cfg.active and deployment and V.Camera and V.Camera.guardDeploymentPose then
+paced=Pacing.constrain(s.cameraComfort,V.Camera:guardDeploymentPose(paced,ctx.arena,true))
+elseif cfg.active and not c.sourceDriven and V.Camera and V.Camera.guardPacedPose then
 paced=Pacing.constrain(s.cameraComfort,V.Camera:guardPacedPose(paced,ctx.arena))
 end
 s.cameraComfort.output=copy(paced)

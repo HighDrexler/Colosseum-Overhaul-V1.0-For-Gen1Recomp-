@@ -111,6 +111,39 @@ local bytes,err=Assets.read(path);if type(bytes)~="string" then return nil,err e
 return R.meshFromBytes(format,bytes,stride,usage)
 end
 
+
+
+
+function R.bundleUsable(meta,stride,expectedPath)
+if type(meta)~="table"or meta.runtimeStorage~="bundle-f32-v1"
+or meta.runtimeBundle~=expectedPath then return false end
+local size=tonumber(meta.runtimeBundleBytes);local bpv=stride*4
+if not size or size<=0 or size>64*1024*1024 or size~=math.floor(size)then return false end
+local info=Assets and Assets.info and Assets.info(expectedPath)
+if not info or (info.size and tonumber(info.size)~=size)then return false end
+local endAt=0
+for _,g in ipairs(meta.groups or{})do
+if type(g)~="table"then return false end
+local offset,bytes,count=tonumber(g.runtimeOffset),tonumber(g.runtimeBytes),tonumber(g.vertexCount)
+if not offset or not bytes or not count or offset~=endAt or bytes~=count*bpv
+or count<3 or count%3~=0 or count~=math.floor(count)or offset+bytes>size then return false end
+endAt=offset+bytes
+end
+return endAt==size
+end
+function R.readBundle(meta)
+if not(Assets and Assets.read and type(meta)=="table")then return nil,"bundle reader unavailable"end
+local bytes,why=Assets.read(meta.runtimeBundle)
+if type(bytes)~="string"or #bytes~=tonumber(meta.runtimeBundleBytes)then return nil,why or"bundle byte count mismatch"end
+return bytes
+end
+function R.meshFromBundle(format,bytes,group,stride,usage)
+local offset,size=tonumber(group and group.runtimeOffset),tonumber(group and group.runtimeBytes)
+if type(bytes)~="string"or not offset or not size or offset<0 or size<=0
+or offset~=math.floor(offset)or size~=math.floor(size)or offset+size>#bytes then return nil,"bundle group range invalid"end
+return R.meshFromBytes(format,bytes:sub(offset+1,offset+size),stride,usage)
+end
+
 local function keySort(a,b)
 local ta,tb=type(a),type(b)
 if ta==tb then return tostring(a)<tostring(b) end

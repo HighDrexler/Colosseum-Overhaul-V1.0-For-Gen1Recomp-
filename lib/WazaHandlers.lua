@@ -211,6 +211,13 @@ or type(meta.groups)~="table" or #meta.groups==0 then return false end
 local recorded=tonumber(meta.sourceSize)
 if size and recorded~=size then return false end
 local stride=(tonumber(meta.morphFrames) or 0)>0 and 44 or 8;local bpv=stride*4
+if meta.runtimeStorage=="bundle-f32-v1"then
+for i,g in ipairs(meta.groups)do
+if type(g)~="table"or g.runtimeBin~=runtimeBinPath(path,i)then return false end
+end
+return RuntimeMeshCache and RuntimeMeshCache.bundleUsable
+and RuntimeMeshCache.bundleUsable(meta,stride,runtimeRoot(path).."/vertices.cbb")or false
+end
 for i,g in ipairs(meta.groups) do
 local expected=runtimeBinPath(path,i)
 if type(g)~="table" or (g.runtimeBin~=nil and g.runtimeBin~=expected) then return false end
@@ -267,6 +274,7 @@ for _,g in ipairs(groups) do if g.mesh and g.mesh.release then pcall(g.mesh.rele
 for _,img in pairs(textures) do if img.release then pcall(img.release,img) end end
 end) or function() end
 local canonicalFallback=nil
+local bundle=fromRuntime and cache.runtimeStorage=="bundle-f32-v1"and RuntimeMeshCache.readBundle(cache)or nil
 for i,g in ipairs(cache.groups or {}) do
 checkpoint("Uploading move effect material "..i)
 local img
@@ -281,7 +289,9 @@ end
 local stride=morph and 44 or 8
 local mesh,vErr,vertices
 if fromRuntime and RuntimeMeshCache and type(RuntimeMeshCache.meshFromPath)=="function" then
-mesh,vErr=RuntimeMeshCache.meshFromPath(fmt,g.runtimeBin or runtimeBinPath(path,i),stride,"static")
+if cache.runtimeStorage=="bundle-f32-v1"then
+mesh,vErr=RuntimeMeshCache.meshFromBundle(fmt,bundle,g,stride,"static")
+else mesh,vErr=RuntimeMeshCache.meshFromPath(fmt,g.runtimeBin or runtimeBinPath(path,i),stride,"static")end
 end
 if not mesh then
 local sourceGroup=g

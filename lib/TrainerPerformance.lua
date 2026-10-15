@@ -60,12 +60,23 @@ end
 function A.realDt(ctx,dt,clock)
 local requested=math.max(0,tonumber(dt) or 0)
 local frame=ctx and ctx.services and ctx.services.presentationFrameClock
-local step=math.min(frame and requested or requested/battleSpeed(ctx),.05)
+local step=math.min(frame and requested or requested/battleSpeed(ctx),.1)
 if clock then clock.fixed=(tonumber(clock.fixed) or 0)+step end
 return step
 end
 function A.speed(ctx) return battleSpeed(ctx) end
+function A.presentationDt(ctx,dt,clock)
+local frame=ctx and ctx.services and ctx.services.presentationFrameClock
+local step=math.max(0,tonumber(dt) or 0)/(frame and 1 or battleSpeed(ctx))
+local T=V and V.BattleTempo
+local game=ctx and (ctx.game or (ctx.battle and ctx.battle.game))
+local rate=T and T.presentationRate and T.presentationRate(game) or 1
+step=math.min(step,.1)*rate
+if clock then clock.fixed=(tonumber(clock.fixed) or 0)+step end
+return step
+end
 function A.pokemonDt(ctx,dt,actor)
+
 
 
 
@@ -140,6 +151,7 @@ reaction1=0,reaction2=0,reaction3=0,reaction4=0,reaction5=0,
 if not kind then return out end
 local d=A.duration(id,kind)
 local u=clamp((tonumber(t) or 0)/math.max(.001,d),0,1)
+if kind=='defeat' then u=math.min(u,.58) end
 local raw=clamp(tonumber(strength) or 1,0,1.20)
 local function adjacentWeights(amp)
 local marks={.20,.36,.52,.68,.84}
@@ -184,6 +196,7 @@ function A.motion(id,kind,t,strength,side)
 local p=cloneProfile(id);local m=zero(p)
 if not kind or (p.id=="red" and kind=="victory") then return m end
 local d=A.duration(id,kind);local u=clamp((tonumber(t) or 0)/math.max(.001,d),0,1)
+if kind=='defeat' then u=math.min(u,.58) end
 local e=p.energy or 1;local g=p.gesture or 1;local r=p.reaction or 1;local w=p.weight or 1
 local turnSign=(side=="enemy") and -1 or 1
 local cmdTurn=(p.commandTurn or -.05)*turnSign
@@ -411,5 +424,5 @@ yaw=(motion.turn or 0)*.46*residual,
 compression=(motion.brace or 0)*.020*residual,
 }
 end
-function A.status() return {version=16,vocabulary={"opening","sendout","recall","command","approval","brace","concern","frustration","victory","defeat"},profiles=PROFILES,clock="speed-normalized-trainers-and-pokemon-idles",pokemonActions="native-effect-clock",sharedPlayerEnemy=true,statefulContinuity=true,sourceAuthority=true,sourcePoseBank="native-a1-full-frame-tracks",sourcePlayback="adjacent-authored-frame-interpolation",proceduralRoot="one-percent-continuity-only",randomVariation=false} end
+function A.status() return {version=19,vocabulary={"opening","sendout","recall","command","approval","brace","concern","frustration","victory","defeat"},profiles=PROFILES,clock="real-time-idle-selected-tempo-actions",pokemonActions="native-effect-clock",sharedPlayerEnemy=true,statefulContinuity=true,sourceAuthority=true,sourcePoseBank="native-a1-full-frame-tracks",sourcePlayback="adjacent-authored-frame-interpolation",proceduralRoot="one-percent-continuity-only",randomVariation=false} end
 return A

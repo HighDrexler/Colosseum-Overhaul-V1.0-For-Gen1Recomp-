@@ -1,6 +1,7 @@
 local V=...
 local FSYS=V.FSYS
 local Portable=V.PortableMusyX
+local RenderQueue=V.AudioRenderQueue
 local S={version=3,rate=32000}
 
 local MARKER="cbe-waza-sfx=3\nsource=GC6E01/common.fsys:common_rel + snd_se_battle + snd_se_battle.samp\nrate=32000\nrenderer=lua-musyx-sfx-v3-gamesound-table\n"
@@ -186,10 +187,38 @@ pool=requiredMember(common,members,"snd_se_battle_pool","common.fsys"),
 sdir=requiredMember(common,members,"snd_se_battle_sdir","common.fsys"),
 samp=directFile(disc,"snd_se_battle.samp"),
 }}
-local ctx=Portable.prepareSfx(payload);payload=nil;common=nil;commonFile=nil
+local ctx=Portable.prepareSfx(payload);common=nil;commonFile=nil
 local index={version=S.version,source="GC6E01 common_rel GameSound definitions + snd_se_battle SFXGroup",rate=S.rate,renderer="lua-musyx-sfx-v3-gamesound-table",
 requestedIds=ids,readyIds={},missingIds={},stats={}}
 local total=#ids
+local pending,bySource={},{}
+local committedSinceJournal=0
+local function journal()
+table.sort(index.readyIds);table.sort(index.missingIds)
+index.ready=#index.readyIds;index.missing=#index.missingIds;index.requested=#ids
+cacheWrite(mod,INDEX_PATH,"return "..serialize(index).."\n",generated)
+committedSinceJournal=0
+end
+local function commit(id,ok,wav,stats)
+local path=outputPath(id)
+if ok and wavValid(wav) and type(stats)=="table" and (tonumber(stats.peak) or 0)>0.000001 then
+local tmp=("cache/waza/sfx/.tmp_%04d.wav"):format(id)
+cacheWrite(mod,tmp,wav,nil)
+local verify=cacheRead(mod,tmp);assert(wavValid(verify),"transaction verify failed for GameSound "..id)
+preserveExisting(mod,path,verify)
+cacheWrite(mod,path,verify,generated);cacheDelete(mod,tmp)
+index.readyIds[#index.readyIds+1]=id
+index.stats[id]={frames=stats.frames,peak=stats.peak,voices=stats.voices,clipped=stats.clipped,
+sourceId=stats.entry and stats.entry.sourceId or nil}
+committedSinceJournal=committedSinceJournal+1
+if committedSinceJournal>=8 then journal()end
+else
+index.missingIds[#index.missingIds+1]=id
+index.stats[id]={missing=true,reason=tostring(ok and "renderer produced silence/invalid WAV" or wav)}
+cacheDelete(mod,("cache/waza/sfx/.tmp_%04d.wav"):format(id))
+end
+progress(("MOVE AUDIO %d/%d / GameSound %04d"):format(#index.readyIds+#index.missingIds,total,id),#index.readyIds+#index.missingIds,math.max(1,total))
+end
 for n,id in ipairs(ids) do
 local path=outputPath(id)
 local definition=gameSounds[id]
@@ -202,30 +231,35 @@ elseif not sourceId or not Portable.hasSfx(ctx,sourceId) then
 
 index.missingIds[#index.missingIds+1]=id;index.stats[id]={missing=true,reason="GameSound definition does not resolve to snd_se_battle SFXGroup"}
 else
+if RenderQueue then
+if not bySource[sourceId] then bySource[sourceId]={};pending[#pending+1]=sourceId end
+bySource[sourceId][#bySource[sourceId]+1]=id
+else
 local ok,wav,stats=pcall(Portable.renderSfx,ctx,sourceId,S.rate,function(frame,frames)
 if frame and frames and frames>0 and frame%(S.rate)==0 then progress(("MOVE AUDIO %d/%d / GameSound %04d"):format(n,total,id),n-1+math.min(.95,frame/frames),math.max(1,total)) end
 end,{quality="fast"})
-if ok and wavValid(wav) and type(stats)=="table" and (tonumber(stats.peak) or 0)>0.000001 then
-local tmp=("cache/waza/sfx/.tmp_%04d.wav"):format(id)
-cacheWrite(mod,tmp,wav,nil)
-local verify=cacheRead(mod,tmp);assert(wavValid(verify),"transaction verify failed for GameSound "..id)
-preserveExisting(mod,path,verify)
-cacheWrite(mod,path,verify,generated);cacheDelete(mod,tmp)
-index.readyIds[#index.readyIds+1]=id
-index.stats[id]={frames=stats.frames,peak=stats.peak,voices=stats.voices,clipped=stats.clipped,
-sourceId=stats.entry and stats.entry.sourceId or nil}
-else
-
-
-index.missingIds[#index.missingIds+1]=id
-index.stats[id]={missing=true,reason=tostring(ok and "renderer produced silence/invalid WAV" or wav)}
-cacheDelete(mod,("cache/waza/sfx/.tmp_%04d.wav"):format(id))
+commit(id,ok,wav,stats)
 end
 end
 if n%6==0 and type(collectgarbage)=="function" then pcall(collectgarbage,"step",180) end
 end
+if RenderQueue and #pending>0 then
+local tasks={}
+for i=1,#pending,8 do
+local batch={};for j=i,math.min(#pending,i+7)do batch[#batch+1]=pending[j]end
+tasks[#tasks+1]={mode="sfx",sfx=payload.sfx,ids=batch,rate=S.rate,quality="fast",source="GameSound source bank"}
+end
+RenderQueue.map(mod,tasks,function(result)
+for _,row in ipairs(result.rows or {})do
+for _,id in ipairs(bySource[row.id] or {})do commit(id,row.ok,row.ok and row.wav or row.error,row.stats)end
+end
+end,function(_,frame,frames)
+progress(("MOVE AUDIO %d/%d / rendering source batches"):format(#index.readyIds+#index.missingIds,total),#index.readyIds+#index.missingIds,math.max(1,total))
+end)
+end
+payload=nil
 index.ready=#index.readyIds;index.missing=#index.missingIds;index.requested=#ids
-cacheWrite(mod,INDEX_PATH,"return "..serialize(index).."\n",generated)
+journal()
 local complete=(index.missing==0 and index.ready==index.requested)
 if complete then
 cacheWrite(mod,MARKER_PATH,MARKER,generated);cacheWrite(mod,FALLBACK_MARKER_PATH,MARKER,generated)

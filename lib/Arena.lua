@@ -9,6 +9,8 @@ local ArenaCacheIdentity=V.ArenaCacheIdentity
 local RelicPresentation=V.RelicPresentation
 local ColosseumFont=V.ColosseumFont
 local A = {}
+A.wind=V.ArenaWind
+A.windVertex=A.wind and A.wind.vertex or 'uniform float windTime;vec4 applyArenaWind(vec4 p,vec2 uv){return p;}'
 
 local function platformOS()
 if love and love.system and type(love.system.getOS)=="function" then
@@ -67,22 +69,24 @@ local FORMAT = {
 {"VertexTint","float",4},
 {"VertexNormal","float",3},
 }
+-- Shared stage uniforms need identical precision on GLES; LOVE defaults differ.
 local VERTEX = [[
 uniform mat4 vp;
 uniform mat4 model;
-uniform float materialMode;
-uniform float materialFlow;
-uniform float sceneTime;
+uniform mediump float materialMode;
+uniform mediump float materialFlow;
+uniform mediump float sceneTime;
 attribute vec4 VertexTint;
 attribute vec3 VertexNormal;
 varying vec4 tint;
 varying float crowdPhase;
 varying vec3 worldPos;
 varying vec3 worldNormal;
+]]..A.windVertex..[[
 vec4 position(mat4 transform_projection, vec4 vertex_position) {
   tint = VertexTint;
   crowdPhase=clamp(length(VertexNormal)-1.0,0.0,1.0);
-  vec4 localPos = vertex_position;
+  vec4 localPos = applyArenaWind(vertex_position,VertexTexCoord.xy);
   vec3 localNormal = normalize(VertexNormal);
   if (materialMode > 0.5 && materialMode < 1.5) {
     /* GC6E01 source water vertices are immutable here.  We have decoded the
@@ -97,15 +101,15 @@ vec4 position(mat4 transform_projection, vec4 vertex_position) {
        feet. Preserve the authored vertices exactly; source crowd animation
        requires a verified texture-animation track, never invented geometry. */
   } else if (materialMode > 3.10 && materialMode < 3.40) {
-    /* Wildland foliage cards: very restrained summit/field wind.  UV.y is
+    /* Wildland foliage cards: rooted, directional gusts. UV.y is
        authored bottom=1/top=0, so trunks/grass roots stay planted while leaf
-       tips and grass crowns move just enough to keep the biome alive. */
+       tips and grass crowns respond to the speed-neutral ambient wind. */
     float tip = 1.0-clamp(VertexTexCoord.y,0.0,1.0);
-    float gust = sin(sceneTime*1.18 + vertex_position.x*0.033 + vertex_position.z*0.027)
-               + 0.42*sin(sceneTime*0.63 - vertex_position.x*0.019 + vertex_position.z*0.041);
-    float amp = materialFlow > 0.75 ? 0.42 : 0.20;
+    float phase=vertex_position.x*.033+vertex_position.z*.027;
+    float gust=.62+.64*sin(windTime*.78539816-phase)+.28*sin(windTime*.34361170+phase*.61);
+    float amp = materialFlow > 0.75 ? 2.0 : 3.4;
     localPos.x += gust*amp*tip;
-    localPos.z += sin(sceneTime*0.91 + vertex_position.z*0.035)*amp*0.42*tip;
+    localPos.z += gust*amp*.36*tip;
   } else if (materialMode > 4.5) {
     /* D2 crater lava follows the same rule: retain the exact extracted mesh and
        source normal until a GC6E01 JObj/shape-animation mapping proves physical
@@ -180,14 +184,14 @@ vec4 openSeaSurface(Image texture, vec2 uv, vec4 color) {
 ]]
 local MOBILE_PIXEL = [[
 uniform float materialAlpha;
-uniform float materialMode;
+uniform mediump float materialMode;
 uniform float sourceTexAnimAuthored;
 uniform vec4 sourceTexAnim0;
 uniform vec2 sourceTexAnim1;
 uniform float sourceTextureColorMap;
 uniform float sourceTextureBlending;
-uniform float materialFlow;
-uniform float sceneTime;
+uniform mediump float materialFlow;
+uniform mediump float sceneTime;
 uniform float sceneProfile;
 uniform vec3 materialDiffuse;
 uniform vec3 materialAmbient;
@@ -329,27 +333,38 @@ vec4 effect(vec4 color, Image texture, vec2 uv, vec2 screen) {
 local ANDROID_SAFE_VERTEX = [[
 uniform mat4 vp;
 uniform mat4 model;
+uniform mediump float materialMode;
+uniform mediump float materialFlow;
 attribute vec4 VertexTint;
 attribute vec3 VertexNormal;
 varying vec4 tint;
 varying float crowdPhase;
 varying vec3 worldPos;
 varying vec3 worldNormal;
+]]..A.windVertex..[[
 vec4 position(mat4 transform_projection, vec4 vertex_position) {
   tint=VertexTint; crowdPhase=0.0;
-  vec4 world=model*vertex_position;
+  vec4 localPos=applyArenaWind(vertex_position,VertexTexCoord.xy);
+  if(materialMode>3.10 && materialMode<3.40){
+    float tip=1.0-clamp(VertexTexCoord.y,0.0,1.0);
+    float phase=vertex_position.x*.033+vertex_position.z*.027;
+    float gust=.62+.64*sin(windTime*.78539816-phase)+.28*sin(windTime*.34361170+phase*.61);
+    float bend=gust*(materialFlow>.75?2.0:3.4)*tip;
+    localPos.x+=bend;localPos.z+=bend*.36;
+  }
+  vec4 world=model*localPos;
   worldPos=world.xyz; worldNormal=normalize((model*vec4(VertexNormal,0.0)).xyz);
   return vp*world;
 }
 ]]
 local ANDROID_SAFE_PIXEL = [[
 uniform float sceneProfile;
-uniform float sceneTime;
-uniform float materialFlow;
+uniform mediump float sceneTime;
+uniform mediump float materialFlow;
 uniform vec3 cameraEye;
 uniform float sourceDiffuseLighting;
 uniform float materialAlpha;
-uniform float materialMode;
+uniform mediump float materialMode;
 uniform float sourceTexAnimAuthored;
 uniform vec4 sourceTexAnim0;
 uniform vec2 sourceTexAnim1;
@@ -386,15 +401,15 @@ vec4 effect(vec4 color, Image texture, vec2 uv, vec2 screen) {
 
 local PIXEL = [[
 uniform float materialAlpha;
-uniform float materialMode;
+uniform mediump float materialMode;
 uniform float sourceMatAnimAuthored;
 uniform float sourceTexAnimAuthored;
 uniform vec4 sourceTexAnim0;
 uniform vec2 sourceTexAnim1;
 uniform float sourceTextureColorMap;
 uniform float sourceTextureBlending;
-uniform float materialFlow;
-uniform float sceneTime;
+uniform mediump float materialFlow;
+uniform mediump float sceneTime;
 uniform float sceneRadiusWorld;
 uniform float sceneProfile;
 uniform float sourceFogEnabled;
@@ -1139,6 +1154,13 @@ for gi,g in ipairs(cache.groups) do
 if type(g.vertices)~="table" then
 local packed=g.verticesPacked
 if type(packed)~="string" then return nil,("arena group %d vertex payload missing"):format(gi) end
+if g.verticesPackedEncoding=="zlib" then
+local size=tonumber(g.verticesPackedBytes)
+if not size or size<1 or size>64*1024*1024 or not (love and love.data and love.data.decompress) then return nil,("arena group %d vertex decoder unavailable or invalid size"):format(gi)end
+local ok,bytes=pcall(love.data.decompress,"string","zlib",packed)
+if not ok or type(bytes)~="string" or #bytes~=size then return nil,("arena group %d compressed vertex data corrupt"):format(gi)end
+packed=bytes
+elseif g.verticesPackedEncoding~=nil then return nil,("arena group %d vertex encoding unknown"):format(gi)end
 local rows={}
 for line in packed:gmatch("[^\r\n]+") do
 local row={}
@@ -1572,6 +1594,7 @@ return false
 end
 local function releaseArenaScene(s)
 if type(s)~="table" then return end
+if s.packaged and V.CherryBlossomArena then V.CherryBlossomArena.release(s) end
 local seen={}
 local function release(obj)
 if not obj or seen[obj] then return end
@@ -1659,16 +1682,32 @@ if type(meta)~="table" or tonumber(meta.runtimeMeshVersion)~=ARENA_RUNTIME_MESH_
 if not sourceSize or tonumber(meta.sourceSize)~=sourceSize or tostring(meta.sourceCache or "")~=tostring(def and def.cache or "") then return false end
 if (meta.preserveSourceShell==true)~=(def and def.preserveSourceShell==true) then return false end
 if def and def.id=="water" and meta.audienceRevision~=2 then return false end
+local bundleSize
+if meta.runtimeBundle then
+if meta.runtimeStorage~="bundle-f32-v1" then return false end
+local info=GeneratedAssets.info and GeneratedAssets.info(meta.runtimeBundle);if not info then return false end
+bundleSize=tonumber(meta.runtimeBundleBytes)
+if not bundleSize or bundleSize<144 or bundleSize%48~=0 or bundleSize>64*1024*1024 then return false end
+local actual=tonumber(info.size)
+if not actual then local bytes=GeneratedAssets.read(meta.runtimeBundle);actual=bytes and #bytes end
+if actual~=bundleSize then return false end
+end
 local total=0
 for _,bucket in ipairs({"opaque","cutout","crowd","translucent","additive"}) do
 local rows=meta[bucket]
 if type(rows)~="table" then return false end
 for i,g in ipairs(rows) do
-local path=type(g)=="table" and (g.runtimeBin or arenaRuntimeBinPath(def.id,bucket,i)) or nil
+if type(g)~="table" then return false end
+local path=g.runtimeBin or arenaRuntimeBinPath(def.id,bucket,i)
+if bundleSize then
+local offset,size=tonumber(g.runtimeOffset),tonumber(g.runtimeBytes)
+if not offset or not size or offset<0 or offset%48~=0 or size<144 or size%48~=0 or offset+size>bundleSize then return false end
+else
 local info=path and GeneratedAssets.info and GeneratedAssets.info(path) or nil
 if not info then return false end
 local size=tonumber(info.size)
 if size and (size<144 or size%48~=0) then return false end
+end
 total=total+1
 end
 end
@@ -1719,6 +1758,11 @@ return shader
 end
 local function loadRuntimeArena(ctx,meta,def,animationOverlay)
 local textures={}
+local bundle
+if meta.runtimeBundle then
+bundle=GeneratedAssets.read(meta.runtimeBundle)
+if type(bundle)~="string" or #bundle~=meta.runtimeBundleBytes then return nil,"arena mesh bundle missing or truncated" end
+end
 local out={opaque={},cutout={},crowd={},translucent={},additive={},bounds=meta.bounds,source=meta.source,textures=textures,
 culled=tonumber(meta.culled) or 0,oversizeCulled=tonumber(meta.oversizeCulled) or 0,crowdOutliers=tonumber(meta.crowdOutliers) or 0,
 crowdOriginal=tonumber(meta.crowdOriginal) or 0,crowdKept=tonumber(meta.crowdKept) or 0,crowdPolicy=meta.crowdPolicy,cachePath=def.cache,runtimeSidecar=true}
@@ -1727,7 +1771,9 @@ for i,g in ipairs(meta[bucket] or {}) do
 local anim=animationOverlay and animationOverlay[bucket] and animationOverlay[bucket][i] or nil
 local tex,terr=texture(g.texture,textures);if not tex then releaseArenaScene(out);return nil,terr end
 local path=g.runtimeBin or arenaRuntimeBinPath(def.id,bucket,i)
-local mesh,merr=RuntimeMeshCache.meshFromPath(FORMAT,path,12,"static")
+local mesh,merr
+if bundle then mesh,merr=RuntimeMeshCache.meshFromBytes(FORMAT,bundle:sub(g.runtimeOffset+1,g.runtimeOffset+g.runtimeBytes),12,"static")
+else mesh,merr=RuntimeMeshCache.meshFromPath(FORMAT,path,12,"static")end
 if not mesh then releaseArenaScene(out);return nil,merr end
 mesh:setTexture(tex.image)
 out[bucket][#out[bucket]+1]={mesh=mesh,alpha=tonumber(g.alpha) or 1,noz=g.noz and true or false,center=g.center or {0,0,0},boundsCenter=g.boundsCenter,span=tonumber(g.span) or 0,extent=g.extent or {0,0,0},
@@ -1740,6 +1786,9 @@ summitNumberCarrier=summitRetailNumberCarrier(g.texture and g.texture.path,g.cen
 sourceJointAnimation=realgamSourceJointDescriptor(g.texture and g.texture.path,g.center,g.extent,g.renderFlags),
 sourceMaterialAnimation=g.sourceMaterialAnimation or (anim and anim.sourceMaterialAnimation),
 sourceTextureAnimation=g.sourceTextureAnimation or (anim and anim.sourceTextureAnimation)}
+if A.wind and A.wind.bind(out[bucket][#out[bucket]],def.id,g.texture and g.texture.path)then
+out.windGroups=(out.windGroups or 0)+1
+end
 end
 end
 arenaRuntimeHits=arenaRuntimeHits+1
@@ -1755,6 +1804,14 @@ errorText="LÖVE 3D graphics API unavailable"; return nil,errorText
 end
 local def=activeDef or (ArenaCatalog and ArenaCatalog.definition and ArenaCatalog.definition("water")) or {id="water",cache="cache/M1_water_cache.lua"}
 local cachePath=def.cache or "cache/M1_water_cache.lua"
+if def.packaged and V.CherryBlossomArena then
+local ready,why=V.CherryBlossomArena.load()
+if not ready then errorText=tostring(why);return nil,errorText end
+local sh,serr=ensureArenaShader(ctx)
+if not sh then releaseArenaScene(ready);errorText=tostring(serr);return nil,errorText end
+scene=ready;touchResident(activeArenaId,scene);errorText=nil
+return scene
+end
 local rt
 local preserveArenaRuntime=false
 if RuntimeMeshCache and type(RuntimeMeshCache.readLua)=="function" and type(RuntimeMeshCache.meshFromPath)=="function" then
@@ -1837,6 +1894,7 @@ textureColorMap=tonumber(g.texture and g.texture.colorMap) or 4,textureBlending=
 summitNumberCarrier=summitRetailNumberCarrier(sourcePath,center,extent),
 sourceJointAnimation=realgamSourceJointDescriptor(g.texture and g.texture.path,center,extent,g.renderFlags),
 sourceMaterialAnimation=g.sourceMaterialAnimation,sourceTextureAnimation=g.sourceTextureAnimation}
+if A.wind and A.wind.bind(entry,activeArenaId,sourcePath)then entry.windOwned=true end
 local bucketName,bucket
 if mode==2 then
 bucketName,bucket="additive",additive
@@ -1877,7 +1935,9 @@ end
 end
 local sh,serr=ensureArenaShader(ctx)
 if not sh then errorText=tostring(serr);return nil,errorText end
-scene={opaque=opaque,cutout=cutout,crowd=crowd,translucent=translucent,additive=additive,bounds=cache.bounds,source=cache.source,textures=textures,culled=culled,oversizeCulled=oversizeCulled,crowdOutliers=crowdOutliers,
+local windGroups=0
+for _,bucket in ipairs{opaque,cutout,translucent,additive}do for _,g in ipairs(bucket)do if g.windOwned then windGroups=windGroups+1 end end end
+scene={opaque=opaque,cutout=cutout,crowd=crowd,translucent=translucent,additive=additive,windGroups=windGroups,bounds=cache.bounds,source=cache.source,textures=textures,culled=culled,oversizeCulled=oversizeCulled,crowdOutliers=crowdOutliers,
 crowdOriginal=tonumber(cache.crowdOriginal) or 0,crowdKept=#crowd,crowdPolicy=cache.crowdPolicy or ((activeDef and activeDef.crowd) or "none"),
 preserveSourceShell=preserveShell,cachePath=cachePath,runtimeSidecar=false }
 if runtimeAll and RuntimeMeshCache and type(RuntimeMeshCache.writeLua)=="function" then
@@ -2015,6 +2075,7 @@ pose={eye={cam.side or 54,cam.height or 24,cam.back or 13},
 focus={cam.lookX or 0,cam.lookY or 6,0},fov=math.rad(40)}
 if V.Camera and V.Camera.guardPose then pose=V.Camera:guardPose(pose,{camera=cam},"passive") end
 end
+if V.Camera and V.Camera.guardVenuePose then pose=V.Camera:guardVenuePose(pose,activeDef) end
 local eye,focus=pose.eye,pose.focus
 local dx,dy,dz=eye[1]-focus[1],eye[2]-focus[2],eye[3]-focus[3]
 local dist=math.max(2,math.sqrt(dx*dx+dy*dy+dz*dz))
@@ -2073,6 +2134,8 @@ sendShader("vp","row",vp);sendShader("model","row",model)
 
 
 sendShader("sceneTime",activeDef and activeDef.profile=="open_water" and crowdSceneTime or sceneTime)
+sendShader('windTime',crowdSceneTime%128)
+if A.wind then sendShader('windInfo',A.wind.none);A.lastWind=false end
 sendShader("sceneRadiusWorld",math.max(20,(BATTLE_VERTEX_RADIUS_RAW or 415)*(STAGE_SCALE or 0.25)+8))
 local profile=(activeDef and activeDef.profile) or "water"
 
@@ -2092,6 +2155,7 @@ local ok,generation=pcall(compat.current)
 if ok and tonumber(generation)==2 then modulate=readableGen2Modulation(modulate) end
 end
 sendShader("wazaWorldModulate",modulate)
+return modulate
 end
 
 
@@ -2522,6 +2586,8 @@ love.graphics.draw(m)
 end
 
 drawGroup=function(g)
+local wind=g.wind or false
+if A.wind and wind~=A.lastWind then sendShader('windInfo',wind or A.wind.none);A.lastWind=wind end
 
 
 
@@ -2977,49 +3043,6 @@ end
 paintBackdropDynamic(w,h,vp)
 end
 
-
-
-
-
-
-local function drawOutskirtsSandDrift(w,h)
-if not (activeDef and activeDef.profile=="outskirts") then return end
-
-
-
-if activeDef.sourceShellOnly then return end
-love.graphics.setShader()
-love.graphics.setDepthMode()
-love.graphics.setBlendMode("alpha","alphamultiply")
-local t=tonumber(sceneTime) or 0
-local lw=math.max(1,h*.00110)
-if love.graphics.setLineWidth then love.graphics.setLineWidth(lw) end
-for i=1,30 do
-local seed=(i*.61803398875)%1
-local speed=.022+.0045*(i%5)
-local q=(seed+t*speed)%1
-local x=w*(q*1.28-.14)
-local y=h*(.58+((i*.34711)%1)*.31)+math.sin(t*.42+i*1.71)*h*.0025
-local len=w*(.010+.012*((i*7)%9)/8)
-local alpha=.018+.016*((i*3)%7)/6
-love.graphics.setColor(.98,.91,.74,alpha)
-love.graphics.line(x,y,x+len,y-h*.0018)
-end
-
-for i=1,16 do
-local q=((i*.41421356237)+t*(.014+.002*(i%4)))%1
-local x=w*(q*1.20-.10)
-local y=h*(.61+((i*.27183)%1)*.27)
-local r=math.max(.7,h*(.00045+.00018*(i%3)))
-love.graphics.setColor(1.0,.93,.76,.022+.007*(i%3))
-love.graphics.circle("fill",x,y,r)
-end
-local drift=((t*.012)%1)*w*.34
-love.graphics.setColor(.97,.89,.70,.018);love.graphics.rectangle("fill",-w*.08+drift,h*.69,w*.34,h*.006)
-love.graphics.setColor(.99,.92,.76,.012);love.graphics.rectangle("fill",w*.48-drift,h*.80,w*.38,h*.004)
-love.graphics.setColor(1,1,1,1)
-end
-
 worldCenter=function(c)
 local x,y,z=(c[1] or 0)*STAGE_SCALE,(c[2] or 0)*STAGE_SCALE,(c[3] or 0)*STAGE_SCALE
 if STAGE_YAW~=0 then
@@ -3069,6 +3092,7 @@ end
 
 
 local function cacheAvailable(def)
+if def and def.packaged then return V.CherryBlossomArena and V.CherryBlossomArena.available() or false end
 return def and def.cache and GeneratedAssets.exists(def.cache) or false
 end
 function A:available(ctx)
@@ -3226,6 +3250,7 @@ return false
 end
 local s,err=loadScene(ctx)
 if not s then log(ctx,"error","arena load failed: %s",tostring(err));return false end
+if A.wind then A.wind.prepare(activeDef and activeDef.profile)end
 if activeArenaId=="mt_battle_summit" then
 ensureSummitBattleNumber(s,(arena and arena.mtBattleNumber) or (ctx and ctx.battle and ctx.battle.cbeMtBattleNumber))
 else
@@ -3330,11 +3355,18 @@ safeArenaPass(ctx,"backdrop",function() drawBackdrop(w,h,vp,baked) end)
 
 
 safeArenaPass(ctx,"opaque",function()
-setStageState(vp,model,true,pose)
+local modulation=setStageState(vp,model,true,pose)
+if s.packaged then V.CherryBlossomArena.draw(s,'opaque',vp,model,pose,crowdSceneTime,modulation,depthActive)
+else
 drawRelicFarField();drawOutskirtsFarField();drawRelicSourceForestShell(s,vp,model,pose)
 drawGroups(s.opaque,pose)
+end
 end)
-safeArenaPass(ctx,"cutout",function() setStageState(vp,model,true,pose);drawGroups(s.cutout,pose) end)
+safeArenaPass(ctx,"cutout",function()
+local modulation=setStageState(vp,model,true,pose)
+if s.packaged then V.CherryBlossomArena.draw(s,'cutout',vp,model,pose,crowdSceneTime,modulation,depthActive)
+else drawGroups(s.cutout,pose) end
+end)
 safeArenaPass(ctx,"crowd",function() setStageState(vp,model,true,pose);drawCrowd(s.crowd,vp,model,pose) end)
 
 
@@ -3404,7 +3436,15 @@ safeArenaPass(ctx,"additive",function() setStageState(vp,model,false,pose);drawA
 
 
 
-safeArenaPass(ctx,"atmosphere",function() drawOutskirtsSandDrift(w,h) end)
+safeArenaPass(ctx,"atmosphere",function()
+if s.packaged then
+local modulation=setStageState(vp,model,false,pose)
+V.CherryBlossomArena.drawPetals(s,vp,model,crowdSceneTime,modulation,depthActive)
+elseif A.wind then
+local modulation=setStageState(vp,model,false,pose)
+A.wind.draw(activeDef and activeDef.profile,vp,model,crowdSceneTime,modulation,depthActive)
+end
+end)
 
 
 
@@ -3444,6 +3484,9 @@ if backdropCanvas then pcall(function() if backdropCanvas.release then backdropC
 backdropCanvas=nil;backdropKey=nil
 end
 function A:resetRuntime()
+if A.wind then A.wind.reset()end
+A.lastWind=nil
+if V.CherryBlossomArena then V.CherryBlossomArena.reset() end
 local released={}
 for id,s in pairs(residentScenes) do
 if s and not released[s] then releaseArenaScene(s);released[s]=true end
@@ -3486,6 +3529,7 @@ crowdPolicy=scene and scene.crowdPolicy or nil,
 crowdOutliers=scene and scene.crowdOutliers or 0,
 activeArena=activeArenaId,cache=activeDef and activeDef.cache or nil,profile=activeDef and activeDef.profile or nil,source=scene and scene.source or nil,framebufferMode=depthMode,depthActive=depthActive,shaderMode=shaderMode,android=ARENA_ANDROID,mobile=ARENA_MOBILE,
 backdropBaked=backdropCanvas~=nil,backdropBakes=backdropBakes,
+windGroups=scene and scene.windGroups or 0,wind=A.wind and A.wind.status(activeDef and activeDef.profile)or nil,
 mtBattleNumber=summitNumberKey,mtBattleVariation=summitVariation,
 residentScenes=residentCount(),residentLimit=RESIDENT_LIMIT,runtimeSidecar=scene and scene.runtimeSidecar==true or false,runtimeMeshHits=arenaRuntimeHits,runtimeMeshWrites=arenaRuntimeWrites,
 }

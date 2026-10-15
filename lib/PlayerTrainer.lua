@@ -553,7 +553,7 @@ local sendoutForward
 local arenaForward={0,-1}
 local trigger,performanceId,actionDuration
 function P:begin(ctx)
-battleKey=battleOf(ctx);age=0;actionKind=nil;actionAge=0;actionStrength=0;initialThrowQueued=false;initialOpeningQueued=false;lastSendingOut=false;resultSeen=nil;pendingFrustration=nil;pendingApproval=nil;pendingReaction=nil;capture=nil;drawFrames=0;currentMotion=nil
+battleKey=battleOf(ctx);age=0;animationClock.fixed=0;actionKind=nil;actionAge=0;actionStrength=0;initialThrowQueued=false;initialOpeningQueued=false;lastSendingOut=false;resultSeen=nil;pendingFrustration=nil;pendingApproval=nil;pendingReaction=nil;capture=nil;drawFrames=0;currentMotion=nil
 performanceState=TrainerPerformance and TrainerPerformance.resetState(performanceState,"red") or nil
 activeNow=self:shouldRender(ctx)
 if activeNow then
@@ -592,18 +592,19 @@ return false
 end
 
 function P:update(ctx,dt)
-local b=battleOf(ctx);if b~=battleKey then stopCaptureSuccessAudio();battleKey=b;age=0;actionKind=nil;actionAge=0;actionStrength=0;initialThrowQueued=false;initialOpeningQueued=false;lastSendingOut=false;resultSeen=nil;pendingFrustration=nil;pendingApproval=nil;pendingReaction=nil;capture=nil;currentMotion=nil;performanceState=TrainerPerformance and TrainerPerformance.resetState(performanceState,"red") or nil end
-activeNow=self:shouldRender(ctx);dt=TrainerPerformance and TrainerPerformance.realDt(ctx,dt,animationClock) or (tonumber(dt) or 0)
+local b=battleOf(ctx);if b~=battleKey then stopCaptureSuccessAudio();battleKey=b;age=0;animationClock.fixed=0;actionKind=nil;actionAge=0;actionStrength=0;initialThrowQueued=false;initialOpeningQueued=false;lastSendingOut=false;resultSeen=nil;pendingFrustration=nil;pendingApproval=nil;pendingReaction=nil;capture=nil;currentMotion=nil;performanceState=TrainerPerformance and TrainerPerformance.resetState(performanceState,"red") or nil end
+local idleStep=TrainerPerformance and TrainerPerformance.realDt(ctx,dt) or (tonumber(dt) or 0)
+activeNow=self:shouldRender(ctx);dt=TrainerPerformance and TrainerPerformance.presentationDt(ctx,dt,activeNow and animationClock or nil) or (tonumber(dt) or 0)
 if activeNow then
 local cfg=playerModelFor(ctx)
 if cfg and sceneKey~=tostring(cfg.id or cfg.label or cfg.cache or "player") then loadScene(ctx) end
-age=age+dt
+age=age+idleStep
 
 
 
 
 
-if not initialOpeningQueued and age>=.72 then initialOpeningQueued=true;trigger("opening",.88) end
+if not initialOpeningQueued and (animationClock.fixed or age)>=.72 then initialOpeningQueued=true;trigger("opening",.88) end
 local sending=(b and b.sendingOut==true) or false
 
 
@@ -632,7 +633,11 @@ if capture then
 
 
 local wall=presentationNow();local step=dt
-if wall and capture.lastClock then step=math.max(0,math.min(.12,wall-capture.lastClock)) end
+if wall and capture.lastClock and not (ctx.services and ctx.services.presentationFrameClock) then
+local T=V and V.BattleTempo
+local rate=T and T.presentationRate and T.presentationRate(ctx.game) or 1
+step=math.max(0,math.min(.12,wall-capture.lastClock))*rate
+end
 if wall then capture.lastClock=wall end
 capture.age=(capture.age or 0)+math.max(0,tonumber(step) or 0)
 if capture.caught and not capture.successSfxPlayed and capture.age>=(capture.outcomeAt or 0) then
@@ -657,10 +662,10 @@ end
 if not actionKind and pendingReaction then
 local queued=pendingReaction;pendingReaction=nil;trigger(queued.kind,queued.strength)
 end
-currentMotion,performanceState=TrainerPerformance.step(performanceState,id,age,actionKind,actionAge,actionStrength,"player",dt)
+currentMotion,performanceState=TrainerPerformance.step(performanceState,id,age,actionKind,actionAge,actionStrength,"player",idleStep)
 end
 end
-function P:finish() stopCaptureSuccessAudio();battleKey=nil;age=0;activeNow=false;actionKind=nil;actionAge=0;actionStrength=0;initialThrowQueued=false;initialOpeningQueued=false;lastSendingOut=false;resultSeen=nil;pendingFrustration=nil;pendingApproval=nil;pendingReaction=nil;capture=nil;currentMotion=nil;performanceState=TrainerPerformance and TrainerPerformance.resetState(performanceState,"red") or nil end
+function P:finish() stopCaptureSuccessAudio();battleKey=nil;age=0;animationClock.fixed=0;activeNow=false;actionKind=nil;actionAge=0;actionStrength=0;initialThrowQueued=false;initialOpeningQueued=false;lastSendingOut=false;resultSeen=nil;pendingFrustration=nil;pendingApproval=nil;pendingReaction=nil;capture=nil;currentMotion=nil;performanceState=TrainerPerformance and TrainerPerformance.resetState(performanceState,"red") or nil end
 local function entryPose()
 if battleKey and battleKey.__mtbHub==true then
 
@@ -1380,11 +1385,12 @@ releaseLoveObject(shader);shader=nil
 releaseLoveObject(shadowMesh);releaseLoveObject(shadowImage);shadowImage=nil;shadowMesh=nil;errorText=nil
 releaseLoveObject(ballMeshWhite);releaseLoveObject(ballMeshRed);releaseLoveObject(ballMeshBlack);releaseLoveObject(ballTexture)
 currentConfig=nil;currentModel="red";currentReason=nil;MODEL_SCALE=arenaModelScale
-activeNow=false;age=0;drawFrames=0;actionKind=nil;actionAge=0;actionStrength=0;lastSendingOut=false
+activeNow=false;age=0;animationClock.fixed=0;drawFrames=0;actionKind=nil;actionAge=0;actionStrength=0;lastSendingOut=false
 ballMeshWhite=nil;ballMeshRed=nil;ballMeshBlack=nil;ballTexture=nil;ballError=nil;ballDrawFrames=0
 captureAssetIndex=nil;captureAssetError=nil;captureSourceDrawFrames=0
 return true
 end
-function P:status() return {active=activeNow,ready=scene~=nil,error=errorText,model=(currentConfig and currentConfig.label) or tostring(currentModel):upper(),modelSource=currentConfig and currentConfig.source or nil,modelReason=currentReason,battleHeight=TrainerRoster and TrainerRoster.battleHeight and TrainerRoster.battleHeight(currentConfig) or 6.9,pose="NativeHSD-source-hand-anchored-throw-player",action=actionKind,modelScale=MODEL_SCALE,final={FINAL_X,0,FINAL_Z},ballTarget={SENDOUT_TARGET_X,0,SENDOUT_TARGET_Z},captureTarget={CAPTURE_TARGET_X,0,CAPTURE_TARGET_Z},drawFrames=drawFrames,ballReady=(captureAssetIndex and true) or ballMeshRed~=nil,ballError=ballError,captureAssetError=captureAssetError,captureSourceDrawFrames=captureSourceDrawFrames,ballDrawFrames=ballDrawFrames,releaseJoint=scene and scene.releaseJoint or nil,releaseJointScore=scene and scene.releaseJointScore or nil,capture=P:captureStatus(),runtimeMeshHit=scene and scene.runtimeSidecar==true or false,runtimeMeshHits=playerRuntimeHits,runtimeMeshFallbacks=playerRuntimeFallbacks,morph=TrainerMorph.status(),windowsCompat=WINDOWS_RUNTIME} end
+function P:battleHeight() return TrainerRoster and TrainerRoster.battleHeight and TrainerRoster.battleHeight(currentConfig) or 6.9 end
+function P:status() return {active=activeNow,ready=scene~=nil,error=errorText,model=(currentConfig and currentConfig.label) or tostring(currentModel):upper(),modelSource=currentConfig and currentConfig.source or nil,modelReason=currentReason,battleHeight=P:battleHeight(),pose="NativeHSD-source-hand-anchored-throw-player",action=actionKind,modelScale=MODEL_SCALE,final={FINAL_X,0,FINAL_Z},ballTarget={SENDOUT_TARGET_X,0,SENDOUT_TARGET_Z},captureTarget={CAPTURE_TARGET_X,0,CAPTURE_TARGET_Z},drawFrames=drawFrames,ballReady=(captureAssetIndex and true) or ballMeshRed~=nil,ballError=ballError,captureAssetError=captureAssetError,captureSourceDrawFrames=captureSourceDrawFrames,ballDrawFrames=ballDrawFrames,releaseJoint=scene and scene.releaseJoint or nil,releaseJointScore=scene and scene.releaseJointScore or nil,capture=P:captureStatus(),runtimeMeshHit=scene and scene.runtimeSidecar==true or false,runtimeMeshHits=playerRuntimeHits,runtimeMeshFallbacks=playerRuntimeFallbacks,morph=TrainerMorph.status(),windowsCompat=WINDOWS_RUNTIME} end
 P._test={throwFacing=throwFacing,sourceBallModel=sourceBallModel}
 return P

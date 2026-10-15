@@ -1,4 +1,4 @@
-local U={active=false,disabled=false,lastDraw=0,lastLabel=nil}
+local U={active=false,disabled=false,lastDraw=0,lastPump=0,lastLabel=nil,lastStage=1,lastStageName="VALIDATING COLOSSEUM DISC"}
 
 local function graphicsReady()
 if U.disabled then return false end
@@ -12,14 +12,15 @@ end
 
 local function stageInfo(label)
 local s=tostring(label or "BUILDING CACHE"):upper()
-if s:find("DISC",1,true) then return 1,"VALIDATING COLOSSEUM DISC" end
-if s:find("FSYS",1,true) then return 2,"INDEXING COLOSSEUM ARCHIVES" end
-if s:find("ARENA",1,true) then return 3,"BUILDING ARENA CACHE" end
-if s:find("TRAINER",1,true) then return 4,"BUILDING TRAINER CACHE" end
-if s:find("TRANSITION",1,true) then return 5,"BUILDING TRANSITION CACHE" end
+if s:find("RUNTIME READY",1,true) then return 7,"FINALIZING GENERATED RUNTIME" end
 if s:find("AUDIO",1,true) then return 6,"BUILDING AUDIO CACHE" end
+if s:find("ARENA",1,true) then return 2,"BUILDING ARENA CACHE" end
+if s:find("TRAINER",1,true) then return 3,"BUILDING TRAINER CACHE" end
+if s:find("TRANSITION",1,true) or s:find("CAPTURE",1,true) or s:find("BALL RELEASE",1,true) or s:find("FAINT RETURN",1,true) then return 4,"BUILDING CAPTURE AND TRANSITION CACHE" end
+if s:find("MOVEFX",1,true) or s:find("VERIFY VISUAL",1,true) then return 5,"BUILDING MOVE EFFECT CACHE" end
+if s:find("DISC",1,true) or s:find("FSYS",1,true) then return 1,"VALIDATING SOURCE AND ARCHIVES" end
 if s:find("VERIFY",1,true) or s:find("READY",1,true) then return 7,"FINALIZING GENERATED RUNTIME" end
-return 1,"BUILDING GENERATED RUNTIME"
+return U.lastStage,U.lastStageName
 end
 
 local function clamp(v,a,b) if v<a then return a elseif v>b then return b end return v end
@@ -49,24 +50,21 @@ end
 
 
 
-
-
-
-
-
-
-
-
-local function pumpOnly()
+local function pumpOnly(now,force)
+if not force and now-U.lastPump<.05 then return end
+U.lastPump=now
 if love and love.event and love.event.pump then pcall(love.event.pump) end
 end
 
 local function draw(label,current,total,force,finalText)
 if not graphicsReady() then return end
 local now=(love.timer and love.timer.getTime and love.timer.getTime()) or os.clock()
-if not force and now-U.lastDraw<0.045 then
+
+
+U.lastStage,U.lastStageName=stageInfo(label)
+if not force and now-U.lastDraw<.25 then
 U.lastLabel=label
-pumpOnly()
+pumpOnly(now,false)
 return
 end
 U.lastDraw=now;U.lastLabel=label;U.active=true
@@ -75,7 +73,7 @@ local g,panelW,_,x,y=beginFrame()
 g.setColor(0.90,0.86,0.65,1);g.print("COLOSSEUM SOURCE CACHE",x+28,y+24)
 g.setColor(0.70,0.74,0.69,1);g.print("BUILDING GENERATED RUNTIME FROM YOUR VALIDATED GC6E01 DISC",x+28,y+56)
 
-local stage,stageName=stageInfo(label)
+local stage,stageName=U.lastStage,U.lastStageName
 local c=tonumber(current) or 0;local t=tonumber(total) or 0
 local localFrac=t>0 and clamp(c/t,0,1) or 0
 local overall=clamp(((stage-1)+localFrac)/7,0,1)
@@ -89,11 +87,11 @@ g.setColor(0.68,0.62,0.32,1);g.rectangle("fill",bx,by,math.max(2,bw*overall),bh,
 g.setColor(0.78,0.80,0.74,1);g.print(("OVERALL CACHE  %d%%"):format(math.floor(overall*100+0.5)),bx,by+34)
 
 g.setColor(0.58,0.62,0.57,1)
-g.print("Visual cache work is normally short; first portable soundtrack synthesis on mobile can take several minutes once.",x+28,y+275)
-g.print("The current source/member is shown above; progress heartbeats confirm the build is still active.",x+28,y+301)
+g.print("Completed source assets are retained. An interrupted build resumes its saved work.",x+28,y+275)
+g.print("Stages have different workloads; the stage count is not an estimate of remaining time.",x+28,y+301)
 if finalText then g.setColor(0.90,0.86,0.65,1);printWrapped(g,finalText,x+28,y+330,panelW-56) end
 endFrame(g)
-if love.event and love.event.pump then love.event.pump() end
+pumpOnly(now,true)
 end)
 if not ok then U.disabled=true end
 end

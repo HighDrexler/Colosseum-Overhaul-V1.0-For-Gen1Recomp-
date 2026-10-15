@@ -18,6 +18,15 @@ local lastRandomResolved=nil
 local primedRandom=nil
 
 local DEFINITIONS={
+cherry_blossom={
+id="cherry_blossom",label="CHERRY BLOSSOM GROVE",cache="assets/cbe/cherry_blossom/scene.lua",ready=true,packaged=true,
+stageScale=.25,stageYaw=0,sceneRadiusRaw=1300,maxGroupSpanRaw=2900,vertexRadiusRaw=1290,
+pokemon={player={-4.5,18},enemy={4.5,-18}},figureScale=.365,
+trainers={player={14,29.5},enemy={-14,-29.5}},trainerScale={player=.425,enemy=.205},
+camera={side=55,back=16,height=12.5,lookX=0,lookY=7.5,frameH=49,shotHeightScale=.72,
+safe={minRadius=28,maxRadius=68,minY=7,maxY=19,maxPitch=20,minPitch=-9,minFov=31,maxFov=54}},
+backdrop={top={.52,.72,.79},bottom={.89,.91,.86}},profile="cherry_blossom",crowd="none",
+},
 water={
 id="water",label="WATER COLOSSEUM",cache="cache/M1_water_cache.lua",ready=true,
 stageScale=0.25,stageYaw=0,sceneRadiusRaw=1100,maxGroupSpanRaw=2600,vertexRadiusRaw=1050,
@@ -107,7 +116,7 @@ pokemon={player={-5.0,18.0},enemy={5.0,-18.0}},figureScale=0.35,trainers={player
 
 
 camera={side=39,back=12,height=15.5,lookX=0,lookY=5.8,frameH=30,shotRadiusScale=0.72,shotHeightScale=0.72,
-safe={minRadius=24,maxRadius=43,minY=6.5,maxY=22.5,maxPitch=19,minPitch=-9,minFov=31,maxFov=50}},
+safe={minRadius=24,maxRadius=43,maxEyeRadius=39,minY=6.5,maxY=22.5,maxPitch=19,minPitch=-9,minFov=31,maxFov=50}},
 backdrop={top={0.14,0.35,0.61},bottom={0.73,0.69,0.53}},profile="pyrite",crowd="source-hsd-exact",
 },
 deep_colosseum={
@@ -151,8 +160,8 @@ preserveSourceShell=true,
 },
 }
 
-local ORDER={"auto","random","open_water","water","orre_colosseum","relic_chamber","relic_cave","outskirts","pyrite_colosseum","deep_colosseum","realgam_colosseum","outdoor_wild","mt_battle_summit","cipher_lab_underground"}
-local VALID={auto=true,random=true,open_water=true,water=true,orre_colosseum=true,relic_chamber=true,relic_cave=true,outskirts=true,pyrite_colosseum=true,deep_colosseum=true,realgam_colosseum=true,outdoor_wild=true,mt_battle_summit=true,cipher_lab_underground=true}
+local ORDER={"auto","random","cherry_blossom","open_water","water","orre_colosseum","relic_chamber","relic_cave","outskirts","pyrite_colosseum","deep_colosseum","realgam_colosseum","outdoor_wild","mt_battle_summit","cipher_lab_underground"}
+local VALID={auto=true,random=true,cherry_blossom=true,open_water=true,water=true,orre_colosseum=true,relic_chamber=true,relic_cave=true,outskirts=true,pyrite_colosseum=true,deep_colosseum=true,realgam_colosseum=true,outdoor_wild=true,mt_battle_summit=true,cipher_lab_underground=true}
 
 local function randomDefinition()
 local pool={}
@@ -220,6 +229,7 @@ function C.options()
 return {
 {id="auto",label="AUTO"},
 {id="random",label="RANDOM"},
+{id="cherry_blossom",label="CHERRY BLOSSOM GROVE"},
 {id="open_water",label="ORRE OPEN SEA"},
 {id="water",label="WATER COLOSSEUM"},
 {id="orre_colosseum",label="ORRE COLOSSEUM"},

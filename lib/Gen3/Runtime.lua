@@ -75,12 +75,31 @@ local version=req('src.core.GameVersion').get()
 local constants=req('src.core.game3.constants').of(version)
 local class=constants:name('trainer_classes',tonumber(st.trainerClass or f.trainer.class),'TRAINER_CLASS_')
 f.trainerName=f.trainer.name;f.oppName=f.trainer.name;f.oppClass=class or st.trainerClassName or f.trainer.class
+if st.trainerB then
+f.nativeTrainerB=f.nativeTrainerB or {}
+local second=f.nativeTrainerB
+second.id=st.trainerIdB;second.name=st.trainerB.name;second.class=st.trainerB.class
+second.className=constants:name('trainer_classes',tonumber(second.class),'TRAINER_CLASS_') or st.trainerB.className
+f.trainerB=second
+else f.trainerB=nil end
 
 
 f.__cbeNativeRival=not st.wild and not st.link and (class=='TRAINER_CLASS_RIVAL'
 or class=='TRAINER_CLASS_RIVAL_EARLY' or class=='TRAINER_CLASS_RIVAL_LATE'
 or ((version=='firered' or version=='leafgreen') and class=='TRAINER_CLASS_CHAMPION'))
 f.result=st.result;f.turnCount=st.turn;f.playerParty=st.playerParty;f.enemyParty=st.foeParty
+if st.result=='win' and not st.wild then
+
+local seq=req('src.core.game3.battle.switch_seq')
+if seq._st==st and seq._steps then
+local index=0
+for i=1,math.min(seq._i or 1,#seq._steps) do
+if seq._steps[i].kind=='trainer_slide_in' then index=index+1 end
+end
+if index>0 then f.trainerSpeechIndex=math.min(index,2) end
+end
+f.trainerSpeechIndex=f.trainerSpeechIndex or 1
+else f.trainerSpeechIndex=nil end
 f.cbeMtBattleChallenge=st.cbeMtBattleChallenge;f.cbeMtBattleNumber=st.cbeMtBattleNumber
 local Anim=req('src.core.game3.battle.anim')
 local P=req('src.core.game3.pokemon');local Ui=req('src.core.game3.battle.ui')
@@ -381,6 +400,9 @@ end
 
 local stage=V.StandaloneHost.session
 local services=stage and stage.context.services
+if V.Gen3DeploymentCamera then
+V.Gen3DeploymentCamera.tick(V.Gen3Presentation.session,math.max(0,math.min(.1,tonumber(dt)or 0)))
+end
 if services then services.presentationFrameClock=true end
 V.StandaloneHost.update(math.max(0,math.min(.1,tonumber(dt) or 0)))
 V.StandaloneHost.updateCamera(dt)
@@ -403,6 +425,26 @@ end
 end)
 end
 function R.install()
+
+
+local Text=req('src.core.game3.battle.battle_text')
+if not Text.__cbeSpikesContext then
+local get=Text.get
+Text.get=function(id,fill)
+if id=='STRINGID_SPIKESSCATTERED' and (not fill or fill.def==nil) then
+local version=req('src.core.GameVersion').get()
+if version=='ruby' or version=='sapphire' then
+local ctx=req('src.core.game3.battle.effect_ctx').current()
+if ctx and ctx.moveId==191 and ctx.user then
+local f={};for k,v in pairs(fill or {})do f[k]=v end
+f.def=ctx.user.side=='player' and 'enemy' or 'player';fill=f
+end
+end
+end
+return get(id,fill)
+end
+Text.__cbeSpikesContext=true
+end
 R.attach(V.mod.game)
 if V.ExpShare then V.ExpShare.installGen3() end
 if R.installed then return true end

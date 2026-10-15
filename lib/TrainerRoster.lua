@@ -103,12 +103,15 @@ end
 local function values(ctx)
 local b=battleOf(ctx)
 if not b then return {} end
-return {
+local list={
 b.oppClass,b.oppName,b.trainerClass,b.trainerName,b.enemyTrainerName,
 b.enemyTrainer and b.enemyTrainer.id,b.enemyTrainer and b.enemyTrainer.name,b.enemyTrainer and b.enemyTrainer.class,
 b.opponent and b.opponent.id,b.opponent and b.opponent.name,b.opponent and b.opponent.class,
-b.trainer and b.trainer.id,b.trainer and b.trainer.name,b.trainer and b.trainer.class,
+b.trainer and b.trainer.id,b.trainer and b.trainer.name,b.trainer and b.trainer.class,b.trainer and b.trainer.className,
 }
+local out={}
+for i=1,15 do if list[i]~=nil then out[#out+1]=list[i] end end
+return out
 end
 local function tokens(ctx)
 local out={}
@@ -330,6 +333,12 @@ if enemyChoice~="auto" then
 local cfg=catalogEntry(enemyChoice)
 return cfg,cfg and ("enemy-forced:"..enemyChoice) or ("enemy-cache-missing:"..enemyChoice)
 end
+local keyOverride=b.__cbeTrainerArchetype
+or (b.__cbeTrainerPairPresentation and b.__cbeTrainerPairPresentation.first)
+if keyOverride then
+local cfg=indexEntry('archetypes',keyOverride)
+if cfg then return cfg,'paired-class:'..keyOverride end
+end
 local special=specialFor(ctx); if special then return special,"special" end
 local key=genericKey(ctx)
 local generic=indexEntry("archetypes",key) or indexEntry("archetypes","default_m")
@@ -369,6 +378,24 @@ end
 return out
 end
 
+function R.presentationPair(ctx)
+local b=battleOf(ctx)
+if not b or b.kind~='trainer' then return nil end
+if b.trainerB then return b.trainerB end
+if b.__cbeTrainerPairChecked then return b.__cbeTrainerPairPresentation and b.__cbeTrainerPairPresentation.second end
+b.__cbeTrainerPairChecked=true
+local t=tokens(ctx);local first,second
+if containsAny(t,{'TWINS','SR_AND_JR'})then first,second='young_f','young_f'
+elseif containsAny(t,{'YOUNG_COUPLE','OLD_COUPLE'})then first,second='cooltrainer_m','cooltrainer_f'
+elseif containsAny(t,{'INTERVIEWER'})then first,second='cooltrainer_f','cooltrainer_m'
+elseif containsAny(t,{'TATE'})and containsAny(t,{'LIZA'})then first,second='young_m','young_f' end
+if not second then return nil end
+local original=b.trainer or {}
+local descriptor={id=original.id,name=original.name or b.oppName,class=original.class,className=original.className,
+__cbeTrainerArchetype=second}
+b.__cbeTrainerPairPresentation={first=first,second=descriptor}
+return descriptor
+end
 function R.available(id) return catalogEntry(id)~=nil end
 function R.coverage()
 local idx=loadIndex(); local archetypes,rivals,players,models=0,0,0,0

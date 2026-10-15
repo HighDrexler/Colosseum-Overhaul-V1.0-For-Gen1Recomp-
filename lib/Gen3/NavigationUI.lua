@@ -56,7 +56,12 @@ M.last={owner=N,page='map',regionSelection=s and s.switch and s.switch.currentSe
 end
 function M.hof(c,N,events)
 local list={};for _,mon in ipairs(N._teams[N._team] or {}) do if (tonumber(mon.species) or 0)~=0 then list[#list+1]=mon end end
-if N._corrupted then c.panel(0,7,240,141);S.replay(c,events);return end
+if N._corrupted then
+local R=req('src.core.game3.rom_text')
+local key=R.has('gMenuText_HOFCorrupt') and 'gMenuText_HOFCorrupt' or 'gText_HOFCorrupted'
+c.panel(0,7,240,141);c.text(R.plain(key),10,65,220,45,6)
+c.footer('A CLOSE');M.last={owner=N,page='hall_of_fame',corrupted=true};return
+end
 local P=req('src.core.game3.pokemon');local rows={}
 for i,mon in ipairs(list) do rows[i]=P.displayMonName(mon)..'  Lv. '..tostring(mon.level or 0) end
 c.panel(0,7,99,141);local mon=list[N._mon];if mon then c.model(mon,1,10,97,130,N) end
@@ -68,7 +73,7 @@ end
 function M.install()
 if M.installed then return end
 S.wrap(req('src.ui.game3.region_map'),'REGION MAP',M.region)
-S.wrap(req('src.ui.game3.hall_of_fame_pc'),'HALL OF FAME',M.hof)
+S.wrap(req('src.ui.game3.hall_of_fame_pc'),'HALL OF FAME',M.hof,nil,false)
 local ok,N=pcall(req,'src.ui.game3.rse.region_map');if ok then S.wrap(N,'REGION MAP / HOENN',M.region,N.Host) end
 if V.Gen3PokenavUI then V.Gen3PokenavUI.install() end
 M.installed=true

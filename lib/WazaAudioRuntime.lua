@@ -132,6 +132,10 @@ local gain=presentationGain(inst,entry)
 if src and type(src.setVolume)=="function" then pcall(src.setVolume,src,gain) end
 local row={key=k,serial=inst and inst.serial,soundId=id,mode=tonumber(entry.soundMode) or 0,
 param=entry.soundParam,gain=gain,frame=inst and inst.frame or 0,source=src,asset=pathFor(id),fallback=not src and why or nil}
+if src and src.getDuration then
+local ok,duration=pcall(src.getDuration,src,'seconds')
+if ok and type(duration)=='number' and duration>0 and duration<math.huge then row.duration=duration end
+end
 A.active[k]=row;record({event="start",serial=row.serial,frame=row.frame,soundId=id,mode=row.mode,asset=row.asset,sourceReady=src and true or false})
 if src and type(src.play)=="function" then pcall(src.play,src) end
 
@@ -144,6 +148,13 @@ function A:update(ctx,inst,entry,frame,state)
 local row=A.active[key(inst,entry)]
 if not row then return "done" end
 if not row.source then return "done" end
+local T=V and V.BattleTempo
+local game=ctx and (ctx.game or (ctx.battle and ctx.battle.game))
+local rate=T and T.presentationRate and T.presentationRate(game) or 1
+
+
+
+if rate>1 and row.duration and ((tonumber(frame)or row.frame)-row.frame)/60+1e-7>=row.duration then return 'done' end
 if type(row.source.isPlaying)=="function" then
 local ok,playing=pcall(row.source.isPlaying,row.source)
 if ok and playing then return true end

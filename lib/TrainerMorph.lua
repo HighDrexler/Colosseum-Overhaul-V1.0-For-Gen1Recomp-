@@ -342,6 +342,37 @@ end
 for gi,g in ipairs(groups) do g.nativeTrack=track;g.nativeGroupIndex=gi end
 return track
 end
+function M.resultHoldFrame(track,kind)
+if kind~='defeat' then return nil end
+local role=track and track.roles and (track.roles[kind] and kind or 'reaction')
+local clip=role and track.roles[role]
+if not clip then return nil end
+if clip.defeatHoldFrame then return clip.defeatHoldFrame end
+local idle=track.roles.idle;local ref=idle and idle.joints and idle.joints[1]
+local frames=clip.joints
+local hold=clip.endFrame
+if ref and ref[5] and frames and #frames>1 then
+local peak,peakFrame,last=0,0,0
+for fi,joints in ipairs(frames) do
+local score=0;local root=joints[5]
+if root then
+for ji=5,math.min(22,#joints,#ref) do
+for axis=1,3 do
+local delta=(joints[ji][axis]-root[axis])-(ref[ji][axis]-ref[5][axis])
+score=score+delta*delta
+end
+end
+end
+if score>peak then peak=score;peakFrame=fi-1 end
+last=score
+end
+
+
+if peak>1e-8 and last<peak*.55 then hold=peakFrame end
+end
+clip.defeatHoldFrame=hold
+return hold
+end
 function M.trackSample(track,kind,age,actionAge,duration)
 local role=(kind and track and track.roles[kind]) and kind or nativeRole(kind);local clip=track and track.roles[role]
 if not clip then return nil end
@@ -354,6 +385,8 @@ else
 
 local sourceDuration=clip.endFrame/fps
 frame=math.min(1,math.max(0,(actionAge or 0)/math.max(.001,sourceDuration)))*clip.endFrame
+local hold=M.resultHoldFrame(track,kind)
+if hold then frame=math.min(frame,hold) end
 end
 local a=math.min(math.floor(frame),clip.count-2)
 local b=a+1;local span=math.min(b,clip.endFrame)-a

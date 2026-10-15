@@ -32,20 +32,51 @@ if P.isMobile() then return math.min(sw,sh)*P.MOBILE_PILL_BAND end
 if kind=="battle" then return 0 end
 return clamp(sh*.03,8,40)
 end
+function P.runoffPanel(ctx,x,y,w,h,headerH)
+local g=ctx.g
+local right=math.min(162,x+w+6)
+headerH=headerH or 14
+g.setColor(0.00,0.01,0.015,0.34)
+g.polygon("fill",x+5,y+3,right,y+3,right,y+h+3,x+5,y+h+3,
+x,y+h-2,x,y+8)
+
+
+ctx.setUIColor("surface",0.030,0.105,0.108,0.88)
+g.polygon("fill",x+5,y,right,y,right,y+h,x+5,y+h,x,y+h-5,x,y+5)
+ctx.setUIColor("surface",0.040,0.175,0.165,0.80)
+g.polygon("fill",x+4,y+3,right,y+3,right,y+headerH,x+7,y+headerH,
+x+3,y+headerH-4)
+ctx.setUIColor("trim",0.36,0.63,0.61,0.95)
+g.setLineWidth(1.2)
+g.line(x+6,y,right,y)
+g.line(x+6,y+h,right,y+h)
+g.line(x,y+6,x,y+h-6)
+ctx.setUIColor("trim",0.12,0.45,0.38,0.86)
+g.rectangle("fill",x+8,y+headerH,right-x-10,1)
+end
+
+function P.runoffSelection(ctx,x,y,w,h)
+local g=ctx.g
+local right=math.min(162,x+w+5)
+ctx.setUIColor("selection",0.075,0.285,0.275,0.96)
+g.polygon("fill",x+6,y,right,y,right,y+h,x+6,y+h,x+2,y+h*0.5)
+ctx.setUIColor("accent",1.00,0.34,0.16,1)
+g.polygon("fill",x+5,y+h*0.5,x+1,y+h*0.22,x+1,y+h*0.78)
+end
+
 function P.consolePanel(ctx,x,y,w,h,u)
-local polygon=function(...) ctx.g.polygon("fill",...) end
 local g=ctx.g
 local c=13*u
 
 g.setColor(0,0,0,0.36)
-polygon(
+g.polygon("fill",
 x+c+5*u,y+6*u,x+w-c+5*u,y+6*u,
 x+w+5*u,y+c+6*u,x+w-c+5*u,y+h+6*u,
 x+c+5*u,y+h+6*u,x+5*u,y+h-c+6*u,x+5*u,y+c+6*u
 )
 
 ctx.setUIColor("surface",0.095,0.11,0.105,0.91)
-polygon(
+g.polygon("fill",
 x+c,y,x+w-c,y,x+w,y+c,
 x+w-c,y+h,x+c,y+h,x,y+h-c,x,y+c
 )

@@ -6,6 +6,7 @@
 
 
 
+local jobInput=...
 local P={}
 
 local okFfi,ffi=pcall(require,"ffi")
@@ -24,6 +25,7 @@ local okString,bytes=pcall(f.string,buf,4)
 return okString and type(bytes)=="string" and #bytes==4
 end
 local PCM_FFI_LE=pcmFfiUsable(ffi)
+local PCM_JIT=jit and type(jit.status)=="function" and jit.status() or false
 
 local floor,ceil,min,max,abs=math.floor,math.ceil,math.min,math.max,math.abs
 local pow=math.pow or function(a,b)return a^b end
@@ -690,8 +692,22 @@ local idx=loopAwareTapIndex(sample,i+k,hasLooped)
 acc=acc+tonumber(sample.pcm[idx])*weights[k+LANCZOS_A]
 end
 end
+elseif safe and PCM_JIT then
+for k=1-LANCZOS_A,LANCZOS_A do acc=acc+pcmByteAt(sample,i+k)*weights[k+LANCZOS_A]end
 elseif safe then
-for k=1-LANCZOS_A,LANCZOS_A do acc=acc+pcmByteAt(sample,i+k)*weights[k+LANCZOS_A] end
+
+
+local a,b,c,d,e,f,g,h,j,k,l,m,n,o,p,r=sample.pcm:byte(first*2+1,last*2+2)
+local s1=a+b*256;if s1>=32768 then s1=s1-65536 end
+local s2=c+d*256;if s2>=32768 then s2=s2-65536 end
+local s3=e+f*256;if s3>=32768 then s3=s3-65536 end
+local s4=g+h*256;if s4>=32768 then s4=s4-65536 end
+local s5=j+k*256;if s5>=32768 then s5=s5-65536 end
+local s6=l+m*256;if s6>=32768 then s6=s6-65536 end
+local s7=n+o*256;if s7>=32768 then s7=s7-65536 end
+local s8=p+r*256;if s8>=32768 then s8=s8-65536 end
+acc=acc+s1*weights[1];acc=acc+s2*weights[2];acc=acc+s3*weights[3];acc=acc+s4*weights[4]
+acc=acc+s5*weights[5];acc=acc+s6*weights[6];acc=acc+s7*weights[7];acc=acc+s8*weights[8]
 else
 for k=1-LANCZOS_A,LANCZOS_A do
 acc=acc+pcmByteAt(sample,loopAwareTapIndex(sample,i+k,hasLooped))*weights[k+LANCZOS_A]
@@ -1125,10 +1141,11 @@ local rvl=rev[mi+1] or 0;local rvr=rev[mi+2] or 0
 local ol=(dl+reverbSample(rv,rv.left,rvl))*outputGain;local orr=(dr+reverbSample(rv,rv.right,rvr))*outputGain
 local x=ol;if abs(x)>peak then peak=abs(x) end;if abs(x)>1 then clipped=clipped+1 end
 if x>1 then x=1 elseif x< -1 then x=-1 end
-local q=x>=0 and floor(x*32767+0.5) or ceil(x*32768-0.5);q=q%65536;bytes[#bytes+1]=string.char(q%256,floor(q/256))
+local q=x>=0 and floor(x*32767+0.5) or ceil(x*32768-0.5);local left=q%65536
 x=orr;if abs(x)>peak then peak=abs(x) end;if abs(x)>1 then clipped=clipped+1 end
 if x>1 then x=1 elseif x< -1 then x=-1 end
-q=x>=0 and floor(x*32767+0.5) or ceil(x*32768-0.5);q=q%65536;bytes[#bytes+1]=string.char(q%256,floor(q/256))
+q=x>=0 and floor(x*32767+0.5) or ceil(x*32768-0.5);q=q%65536
+bytes[#bytes+1]=string.char(left%256,floor(left/256),q%256,floor(q/256))
 end
 blockBytes=table.concat(bytes)
 end
@@ -1268,4 +1285,33 @@ return {complete=complete,rate=rate,quality=qualityName(renderOpts),renderer="Lu
 end
 
 P.validWav=validWav
+function P.renderJob(input,progress,prepared)
+assert(type(input)=="table","audio job input missing")
+if input.mode=="probe" then return {assetIO=type(job)=="table" and type(job.cache)=="table",jitEnabled=jit and jit.status and jit.status() or false}end
+local lastWrite=0
+local function heartbeat(frame,total)
+if progress then progress(frame,total)end
+if type(job)=="table" and input.progressPath and love and love.timer then
+local current=love.timer.getTime()
+if current-lastWrite>=1 then
+lastWrite=current
+pcall(job.cache.write,job.cache,input.progressPath,("%d\t%d"):format(frame,total))
+end
+end
+end
+if input.mode=="song" then
+local ctx=prepared or P.prepare({music=input.music})
+local intro,loop,stats=P.renderSong(ctx,input.sequence,input.setup,input.loop,input.rate,heartbeat,{quality=input.quality})
+return {intro=intro,loop=loop,stats=stats}
+elseif input.mode=="sfx" then
+local ctx=prepared or P.prepareSfx({sfx=input.sfx});local rows={}
+for _,id in ipairs(input.ids)do
+local ok,wav,stats=pcall(P.renderSfx,ctx,id,input.rate,heartbeat,{quality=input.quality})
+rows[#rows+1]={id=id,ok=ok,wav=ok and wav or nil,stats=ok and stats or nil,error=not ok and tostring(wav)or nil}
+end
+return {rows=rows}
+end
+error("unknown audio job mode")
+end
+if type(jobInput)=="table" and jobInput.cbeAudioJob==1 then return P.renderJob(jobInput)end
 return P

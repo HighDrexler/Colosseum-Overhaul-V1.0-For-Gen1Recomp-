@@ -1719,8 +1719,12 @@ local currentRenderPassFilter=opts.renderPassFilter~=false
 
 
 local selectiveActions=opts.selectiveActions==true and type(opts.wantedActions)=="table"
-local actionProfile=selectiveActions and "selective" or (opts.actionProfile=="storage" and "storage" or "full")
-local wantedActions=selectiveActions and opts.wantedActions or (actionProfile=="storage" and {idle=true} or nil)
+-- A cold required model needs a body plus its concrete action plan, not every
+-- source animation. Store it under the existing bounded/storage contract so
+-- later moves can add exact actions without invalidating the base or caches.
+local requiredActions=opts.actionProfile=="required" and type(opts.wantedActions)=="table"
+local actionProfile=selectiveActions and "selective" or ((opts.actionProfile=="storage" or requiredActions) and "storage" or "full")
+local wantedActions=(selectiveActions or requiredActions) and opts.wantedActions or (actionProfile=="storage" and {idle=true} or nil)
 
 
 

@@ -1,11 +1,10 @@
 local V=...
 local FSYS=V.FSYS
 local PortableMusyX=V.PortableMusyX
+local RenderQueue=V.AudioRenderQueue
 local Fidelity=V.AudioFidelity
 local function renderQuality(mod)return Fidelity and Fidelity.resolve(mod) or "fast" end
 local A={}
-local serial=0
-
 
 
 
@@ -594,7 +593,11 @@ reportRows[#reportRows+1]=table.concat({
 "source_loop_end_tick="..tostring(tonumber(st.sourceLoopEndTick) or 0),
 }," ")
 end
-local okRender,result=pcall(PortableMusyX.renderAll,payload,function(message)
+local function renderAll(payload,send)
+if RenderQueue then return RenderQueue.renderAll(mod,payload,send)end
+return PortableMusyX.renderAll(payload,send)
+end
+local okRender,result=pcall(renderAll,payload,function(message)
 if message.kind=="source" then
 progress(("AUDIO PORTABLE %d/24 / %s"):format(complete,tostring(message.source or "MusyX source")),complete,24)
 elseif message.kind=="heartbeat" then
@@ -622,6 +625,9 @@ pcall(cacheWrite,mod,reportPath,table.concat(reportRows,"\n").."\n",generated)
 error(result,0)
 end
 reportRows[#reportRows+1]="complete="..tostring(complete)
+reportRows[#reportRows+1]="background_source_units="..tostring(result and result.workers or 0)
+reportRows[#reportRows+1]="serial_source_units="..tostring(result and result.fallbacks or 0)
+reportRows[#reportRows+1]="render_seconds="..tostring(result and result.seconds or 0)
 cacheWrite(mod,reportPath,table.concat(reportRows,"\n").."\n",generated)
 assert(result and tonumber(result.complete)==expectedEmitted,("portable MusyX renderer completed with %s/%d requested sequence assets"):format(tostring(result and result.complete),expectedEmitted))
 assert(complete==24,("portable audio cache completed with %d/24 assets"):format(complete))
@@ -637,122 +643,16 @@ progress("AUDIO PORTABLE 24/24 / 48 kHz canonical cross-platform cache verified"
 return {ready=true,complete=24,total=24,renderer=result.renderer or "portable Lua MusyX canonical v9 / cross-platform / 48 kHz",rate=PORTABLE_RATE}
 end
 
-local function now()
-return love and love.timer and love.timer.getTime and love.timer.getTime() or os.clock()
-end
-
-local function render(mod,payload,progress,generated)
-assert(love and love.thread and type(love.thread.newThread)=="function",
-'audio renderer: host sandbox does not expose love.thread to this mod')
-serial=serial+1
-local token=("%d_%d"):format(serial,math.floor(now()*1000000)%1000000000)
-local inputName="cbe_audio_import_in_"..token
-local outputName="cbe_audio_import_out_"..token
-local input=love.thread.getChannel(inputName)
-local output=love.thread.getChannel(outputName)
-input:clear();output:clear()
-local workerPath=tostring(mod.path).."/extract/AudioWorker.lua"
-local okThread,thread=pcall(love.thread.newThread,workerPath)
-assert(okThread and thread,"audio renderer worker "..workerPath..": "..tostring(thread))
-input:push(payload)
-local okStart,startErr=pcall(thread.start,thread,inputName,outputName)
-assert(okStart,"audio renderer worker start: "..tostring(startErr))
-
-local complete=0
-local active="preparing renderer"
-local activeAt=now()
-local lastHeartbeat=-1
-while true do
-local message=output:pop()
-if message then
-if message.kind=="source" then
-active=tostring(message.source or "audio source")
-activeAt=now()
-progress(("AUDIO %d/24 / %s"):format(complete,active),complete,24)
-elseif message.kind=="asset" then
-writeAsset(mod,tostring(message.path),message.bytes,generated)
-complete=complete+1
-progress(("AUDIO %d/24 / %s"):format(complete,tostring(message.source or message.path)),complete,24)
-elseif message.kind=="error" then
-error(("audio source %s: %s"):format(tostring(message.source or active),tostring(message.error or "conversion failed")),0)
-elseif message.kind=="done" then
-assert(complete==24,("audio renderer completed with %d/24 cached assets"):format(complete))
-input:clear();output:clear()
-return complete
-end
-end
-local workerErr=thread.getError and thread:getError()
-if workerErr then error(("audio source %s: worker crashed: %s"):format(active,tostring(workerErr)),0) end
-local t=now()
-if t-lastHeartbeat>=0.20 then
-lastHeartbeat=t
-progress(("AUDIO %d/24 / %s / %ds"):format(complete,active,math.floor(t-activeAt)),complete,24)
-end
-if love.timer and love.timer.sleep then love.timer.sleep(0.04) end
-end
-end
 
 
 function A.platformSupported()
-local osName=nil
+local osName="unknown"
 if love and love.system and type(love.system.getOS)=="function" then
-local ok,v=pcall(love.system.getOS);if ok then osName=tostring(v or "") end
+local ok,v=pcall(love.system.getOS);if ok and v then osName=tostring(v)end
 end
-
-
-if osName=="" or osName==nil then return false,"unknown" end
-return osName=="Windows",osName
+return true,osName
 end
-function A.run(mod,disc,progress,generated)
-progress=progress or function()end
-local supported,osName=A.platformSupported()
-assert(supported,("Windows Amuse conversion is unavailable on %s; use the portable renderer on this platform"):format(tostring(osName or "this platform")))
-progress("AUDIO 0/24 / locating MusyX sources",0,24)
-local commonFile=assert(disc:file("common.fsys"),"audio source common.fsys: archive missing")
-local bgmFile=assert(disc:file("bgm_archive.fsys"),"audio source bgm_archive.fsys: archive missing")
-local common=FSYS.open(disc,commonFile)
-local bgm=FSYS.open(disc,bgmFile)
-local commonMembers,bgmMembers=memberMap(common),memberMap(bgm)
-
-local renderer=mod:read("third_party/amuse/amuserender.exe")
-assert(type(renderer)=="string" and #renderer>0,
-"audio renderer third_party/amuse/amuserender.exe: bundled converter missing")
-
-local songs={}
-for _,theme in ipairs(THEMES) do
-songs[#songs+1]={
-source="bgm_archive.fsys/"..theme.source,
-setup=theme.setup,loopFrame=theme.loopFrame,
-introPath=theme.intro,loopPath=theme.loop,
-sequence=requiredMember(bgm,bgmMembers,theme.source,"bgm_archive.fsys"),
-}
-end
-
-local oneShots={}
-for _,shot in ipairs(ONE_SHOTS) do
-oneShots[#oneShots+1]={source="bgm_archive.fsys/"..shot.source,setup=shot.setup,outputPath=shot.output,
-sequence=requiredMember(bgm,bgmMembers,shot.source,"bgm_archive.fsys")}
-end
-
-local payload={
-renderer=renderer,sampleRate=48000,songs=songs,oneShots=oneShots,
-music={
-proj=requiredMember(common,commonMembers,"snd_music_proj","common.fsys"),
-pool=requiredMember(common,commonMembers,"snd_music_pool","common.fsys"),
-sdir=requiredMember(common,commonMembers,"snd_music_sdir","common.fsys"),
-samp=directFile(disc,"snd_music.samp"),
-},
-transition={
-source="common.fsys/snd_se_battle_sdir + disc/snd_se_battle.samp / sample 92 (SFX 0x00CC)",
-outputPath="assets/audio/colosseum_battle_transition.wav",sampleId=92,
-sdir=requiredMember(common,commonMembers,"snd_se_battle_sdir","common.fsys"),
-samp=directFile(disc,"snd_se_battle.samp"),
-},
-}
-local complete=render(mod,payload,progress,generated)
-progress("AUDIO 24/24 / generated cache verified",complete,24)
-return {ready=true,complete=complete,total=24,renderer="CBE import worker / Amuse"}
-end
+A.run=A.runPortableFull
 
 
 function A.fidelityLedger(mod,sizes)

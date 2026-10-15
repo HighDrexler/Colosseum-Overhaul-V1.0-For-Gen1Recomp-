@@ -9,6 +9,8 @@ local LauncherCompat=V.LauncherCompat or {}
 local GeneratedCacheReset=V.GeneratedCacheReset
 local BUILD_VERSION=tostring(V.BuildVersion or "unknown")
 local PLATFORM_OS=tostring(V.PlatformOS or "Unknown")
+local BUILD_PHASES={DISC="disc",FSYS="archives",ARENA="arenas",ARENAS="arenas",TRAINER="trainers",TRAINERS="trainers",
+CAPTURE="capture",TRANSITION="transition",MOVEFX="movefx",AUDIO="audio",VERIFY="verify",RUNTIME="finalize"}
 local DIAG_PATH="build/android_storage_diagnostic.txt"
 local B={cacheVersion=2,extractorRevision=15}
 local function memoryFence()
@@ -962,8 +964,28 @@ local priorForcedRebuild=forcedRebuildPlan
 forcedRebuildPlan=options.forceRebuild==true and {
 arenas=true,trainers=true,capture=true,transition=true,movefx=true,audio=true,
 } or nil
-local function done(value) forcedRebuildPlan=priorForcedRebuild;return value end
-progress=progress or function()end
+local clock=love and love.timer and love.timer.getTime or os.clock
+local started,phaseStart=clock(),clock();local phase="startup";local durations={};local updates=0
+local function saveTiming()
+if updates==0 then return end
+local current=clock();local rows={"cbe_cache_performance=1","build="..BUILD_VERSION,"platform="..PLATFORM_OS,
+("elapsed_seconds=%.3f"):format(current-started),"current_phase="..phase}
+local keys={};for k in pairs(durations)do keys[#keys+1]=k end
+if durations[phase]==nil then keys[#keys+1]=phase end;table.sort(keys)
+for _,k in ipairs(keys)do rows[#rows+1]=("phase_%s_seconds=%.3f"):format(k,(durations[k]or 0)+(k==phase and current-phaseStart or 0))end
+pcall(write,mod,"build/cache_performance.txt",table.concat(rows,"\n").."\n",nil)
+end
+local function done(value) saveTiming();forcedRebuildPlan=priorForcedRebuild;return value end
+local notify=progress or function()end
+progress=function(label,current,total)
+updates=updates+1
+local text=tostring(label or ""):upper();local token=text:match("^([A-Z]+)")
+local nextPhase=text:find("^MOVE AUDIO") and "move_audio" or BUILD_PHASES[token]
+if nextPhase and nextPhase~=phase then
+local now=clock();durations[phase]=(durations[phase]or 0)+now-phaseStart;phase,phaseStart=nextPhase,now;saveTiming()
+end
+notify(label,current,total)
+end
 
 
 
@@ -1049,7 +1071,12 @@ local function saveState()
 diag.stage=state.current_stage;writeDiagnostic(mod,diag)
 write(mod,"build/state.txt",stateText(state),generated)
 end
-local function update(label,current,total)progress(label,current,total)end
+local backgroundAudio,joiningAudio
+local queue=V.AudioRenderQueue
+local function update(label,current,total)
+if backgroundAudio then queue.pumpBackground(backgroundAudio)end
+progress(label,current,total)
+end
 local ok,result=pcall(function()
 update("DISC / FST",0,9)
 local disc=Disc.open(mod)
@@ -1067,6 +1094,17 @@ write(mod,"build/fsys.lua",string.format("return {count=%d,peopleMembers=%d}\n",
 parc=nil;people=nil;memoryFence()
 state.message="FSYS transport validated";saveState();stage(mod,"fsys",generated)
 
+
+
+
+if queue and type(queue.startBackground)=="function"then
+backgroundAudio=queue.startBackground(mod,function()
+local audio,why,osName=attemptRequiredAudio(mod,disc,function(label,c,t)
+if joiningAudio then progress(label,c,t)end
+end,generated)
+return {audio=audio,why=why,osName=osName}
+end)
+end
 state.current_stage="arenas";state.message="Generating CBE arena runtime";saveState();update("ARENAS",2,9)
 ArenaBuilder.run(mod,disc,function(label,c,t)update(label,c,t)end,generated)
 assert(ArenaBuilder and type(ArenaBuilder.sourceAnimationMetadata)=="function","arena source animation metadata builder unavailable")
@@ -1138,7 +1176,12 @@ saveState();finishManifest(mod,generated)
 state.current_stage="audio";state.audio_ready=0;state.audio_exhausted=0
 del(mod,AUDIO_EXHAUSTED_PATH)
 state.message="Building required canonical Colosseum soundtrack + environment cache";saveState();update("AUDIO EXTRACTION 0/28",8,9)
-local audio,why,osName=attemptRequiredAudio(mod,disc,function(label,c,t)update(label,c,t)end,generated)
+local audio,why,osName
+if backgroundAudio then
+joiningAudio=true
+local result,err=queue.finishBackground(backgroundAudio);backgroundAudio=nil
+if result then audio,why,osName=result.audio,result.why,result.osName else why=err end
+else audio,why,osName=attemptRequiredAudio(mod,disc,function(label,c,t)update(label,c,t)end,generated)end
 if not (audio and audio.ready) then
 local failed=audioRequiredFailure(mod,state,generated,
 "Required Colosseum soundtrack cache failed; visual cache retained, CBE runtime withheld until audio retry succeeds",
@@ -1159,6 +1202,10 @@ write(mod,".cbe-runtime-v2.complete",EXPECTED_MARKER,generated)
 saveState();finishManifest(mod,generated);update("RUNTIME READY / AUDIO 28/28",9,9)
 return {state="READY",runtimeReady=true,visualReady=true,moveFxReady=state.movefx_ready==1,audioReady=true,audioExhausted=false,portableAudioReady=audio.portable==true,files=#disc.files,fsys=fsysCount,trainerResolved=state.trainer_resolved,trainerTotal=state.trainer_total,trainerDiagnostic=state.trainer_diagnostic,message=state.message,audioPrimaryError=nil,diagnosticPath=nil}
 end)
+if backgroundAudio then
+queue.cancelBackground(backgroundAudio)
+pcall(finishManifest,mod,generated)
+end
 if not ok then
 local msg=tostring(result)
 local failedStage=state.current_stage

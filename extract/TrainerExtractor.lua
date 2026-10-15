@@ -225,7 +225,7 @@ return m.overall<=.78 and m.max<=1.85
 end
 local function sourcePoseSample(base,clip,frame,targetHeight,referenceBounds)
 if not (HSD and type(HSD.extractNativePose)=="function") then return nil end
-local sample=HSD.extractNativePose(base,clip,frame,{textures=false,nativeScaleCompensation=true,nativeTrainerIK=true,
+local sample=HSD.extractNativePose(base,clip,frame,{decodeSession=base.sourceDecodeSession,textures=false,nativeScaleCompensation=true,nativeTrainerIK=true,
 preserveVertexColors=true,honorRenderPass=true,skipShadowMaterials=true,
 maxVertices=30000,maxDisplayOps=120000,maxJobjs=1536,maxDobjs=6144,maxPobjs=12288})
 if not sample then return nil end
@@ -709,7 +709,7 @@ local captureThrowPart=throwPartIndex and throwPartIndex>=0 and throwClip==tonum
 local throwMatrices=captureThrowPart and {} or nil
 for fi=0,count-1 do
 local frame=math.min(fi,finish)
-local pose=assert(HSD.extractNativePose(model,clip,frame,{textures=false,nativeScaleCompensation=true,nativeTrainerIK=true,
+local pose=assert(HSD.extractNativePose(model,clip,frame,{decodeSession=model.sourceDecodeSession,textures=false,nativeScaleCompensation=true,nativeTrainerIK=true,
 preserveVertexColors=true,preserveJointMatrices=captureThrowPart==true,honorRenderPass=true,skipShadowMaterials=true,
 maxVertices=30000,maxDisplayOps=120000,maxJobjs=1536,maxDobjs=6144,maxPobjs=12288}))
 normalizeLike(pose,target.height,referenceBounds)
@@ -892,7 +892,7 @@ local pct=(tonumber(total) or 0)>0 and math.floor((tonumber(done) or 0)*100/(ton
 progress(("TRAINER FINAL DECOMPRESS  %s  %d%%"):format(label,pct),0,1)
 end,
 });assert(ok and type(blob)=="string",blob or ("trainer source read failed: "..src.key))
-local opts={textures=true,nativeScaleCompensation=true,nativeTrainerIK=true,sourceMaterialAnimation=true,
+local opts={decodeSession={},textures=true,nativeScaleCompensation=true,nativeTrainerIK=true,sourceMaterialAnimation=true,
 preserveVertexColors=true,sourceTextureState=true,honorRenderPass=true,skipShadowMaterials=true,
 maxRoots=32,maxVertices=30000,maxDisplayOps=120000,maxJobjs=1536,maxDobjs=6144,maxPobjs=12288,
 nativePose={clip=1,frame=0},semanticRootsOnly=true}
@@ -905,6 +905,7 @@ opts.semanticRootsOnly=nil
 model,err=HSD.extractModel(blob,opts);rootMode="generic-fallback"
 end
 assert(model,err or ("trainer HSD decode failed: "..src.key))
+model.sourceDecodeSession=opts.decodeSession
 model.sourceRootMode=rootMode
 local ref={min={model.bounds.min[1],model.bounds.min[2],model.bounds.min[3]},max={model.bounds.max[1],model.bounds.max[2],model.bounds.max[3]}}
 model.sourceReferenceBounds=ref

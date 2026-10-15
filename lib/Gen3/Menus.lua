@@ -21,6 +21,7 @@ local G=g();local sc=math.max(.1,math.floor(math.min(w/160,h/144)))
 if math.min(w/160,h/144)<1 then sc=math.min(w/160,h/144) end
 local ox,oy=math.floor((w-160*sc)/2+.5),math.floor((h-144*sc)/2+.5)
 local ctx={state={},partyMenu={},dexUI={optionDisplay=function(row) return row.value or '' end},textScale=1.08,partyActionMaxHeight=116}
+ctx.presentation=V.UIPresentation
 ctx.graphics=setmetatable({getDimensions=function() return w,h end,getWidth=function() return w end,
 getHeight=function() return h end},{__index=G})
 ctx.finalCanvas=function() return ox,oy,sc end;ctx.partyCanvas=ctx.finalCanvas
@@ -113,13 +114,22 @@ G.push('all');G.setCanvas(M.scratch);G.origin();G.setScissor();G.clear(0,0,0,0)
 local result={pcall(draw,...)};G.pop()
 if not result[1] then error(result[2],0) end
 end
-local function paint(kind,draw)
+local paintAdapter
+local function paint(draw)
 return V.Gen3Overlay.paint(function(w,h)
-local ctx=M.context(w,h);draw(V.MenuPresentation.bind(ctx),ctx,w,h)
+local cached=paintAdapter
+if not cached or cached.w~=w or cached.h~=h or cached.graphics~=g()
+or cached.presentation~=V.MenuPresentation then
+local ctx=M.context(w,h)
+cached={w=w,h=h,graphics=g(),presentation=V.MenuPresentation,
+ctx=ctx,renderer=V.MenuPresentation.bind(ctx)}
+paintAdapter=cached
+end
+draw(cached.renderer,cached.ctx,w,h)
 end)
 end
 function M.start(N)
-return paint('start',function(renderer,ctx,w,h)
+return paint(function(renderer,ctx,w,h)
 local items={};for i,row in ipairs(N.ENTRIES or {}) do items[i]={label=text(row.label)} end
 renderer.start({}, {items=items,index=N._confirmExit and 0 or N.cursor,
 scroll=N._scrollOffset or 0,maxVisible=(N._data and N._data.maxVisible) or N.MAX_VISIBLE or 8})
@@ -150,13 +160,13 @@ end
 rows[i]={label=text(name),__gen3uiUIRow={value=text(value)}}
 end
 rows[#rows+1]={label='BACK'}
-return paint('options',function(renderer)
+return paint(function(renderer)
 renderer.start({}, {__gen3uiUISettings=true,title=text(page.title),items=rows,index=page.index,
 scroll=page.scroll or 0,maxVisible=N.VISIBLE or 7,footer='LEFT / RIGHT: CHANGE   A: SELECT   B: BACK'})
 end)
 end
 function M.generic(menu)
-return paint('mod-menu',function(renderer,ctx,w,h)
+return paint(function(renderer,ctx,w,h)
 local items={}
 for i,row in ipairs(menu.rows) do
 items[i]={label=text(type(row.label)=='function' and row.label() or row.label)}
@@ -226,7 +236,7 @@ return {data=data,save={party=party}},state
 end
 function M.party(N)
 local game,state=M.partyFacade(N)
-return paint('party',function(renderer,ctx)
+return paint(function(renderer,ctx)
 renderer.party(game,state)
 if N.mode=='choose_multi' then
 local x,y,s=ctx.partyCanvas()
@@ -269,7 +279,7 @@ elseif N.mode=='toss_done' then out.message={'Discarded '..tostring(N.tossQty)..
 return out
 end
 function M.bag(N,skin)
-return paint('bag',function(renderer,ctx,w,h)
+return paint(function(renderer,ctx,w,h)
 renderer.bag(M.bagFacade(N,skin),w,h,false)
 if skin and N.mode=='action' then
 local rs=N._rsBag

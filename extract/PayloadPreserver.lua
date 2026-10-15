@@ -111,8 +111,15 @@ assert(type(data)=="string","persistent payload write requires bytes")
 local kept
 if preserveExisting then
 local why
+if oldBytes==nil then oldBytes,why=cacheRead(mod,path);assert(why==nil,why)end
+if oldBytes==data then
+if generated then generated[#generated+1]=path end
+return true,nil
+end
+if oldBytes~=nil then
 kept,why=P.preserve(mod,namespace,path,data,oldBytes)
 assert(why==nil,why)
+end
 end
 local ok,why=cacheWrite(mod,path,data)
 assert(ok,why or ("cache write failed: "..tostring(path)))

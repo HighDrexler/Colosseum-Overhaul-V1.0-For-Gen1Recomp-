@@ -1,7 +1,7 @@
 local mod=...
-local VERSION="3.0.1"
+local VERSION="3.3.11"
 mod.exports.version=VERSION
-mod.exports.releaseBuild="colosseum-overhaul-3.0.1"
+mod.exports.releaseBuild="colosseum-overhaul-3.3.11"
 
 local function package(path,arg)
 local src=mod:read(path)
@@ -16,9 +16,13 @@ end
 
 local NativeLauncherCompat=package("lib/NativeLauncherCompat.lua")
 local launcherCompat=NativeLauncherCompat.install(mod)
+local CacheCodec=package("lib/CacheCodec.lua")
+CacheCodec.install(mod)
+package("lib/ModelCacheArchive.lua",CacheCodec).install(mod)
 local BuildProgressUI=package("lib/BuildProgressUI.lua")
 local AudioFidelity=package("lib/AudioFidelity.lua")
 local GeneratedCacheReset=package("lib/GeneratedCacheReset.lua")
+local PackageRGBA=package("lib/PackageRGBA.lua")
 
 local function platformOS()
 if love and love.system and type(love.system.getOS)=="function" then
@@ -70,12 +74,13 @@ local GameCubeDisc=package("extract/GameCubeDisc.lua")
 local FSYS=package("extract/FSYS.lua")
 local HSD=package("extract/HSD.lua",{GXTexture=GXTexture})
 local PayloadPreserver=package("extract/PayloadPreserver.lua")
-local ArenaBuilder=package("extract/ArenaBuilder.lua",{HSD=HSD,FSYS=FSYS,
+local ArenaBuilder=package("extract/ArenaBuilder.lua",{HSD=HSD,FSYS=FSYS,PackageRGBA=PackageRGBA,
 ArenaAudienceProfile=package("lib/ArenaAudienceProfile.lua"),ArenaCacheIdentity=package("lib/ArenaCacheIdentity.lua"),PayloadPreserver=PayloadPreserver})
 local TransitionBuilder=package("extract/TransitionBuilder.lua",{PayloadPreserver=PayloadPreserver})
 local PortableMusyX=package("extract/PortableMusyX.lua")
-local AudioProbe=package("extract/AudioProbe.lua",{FSYS=FSYS,PortableMusyX=PortableMusyX,AudioFidelity=AudioFidelity})
-local WazaSfxBuilder=package("extract/WazaSfxBuilder.lua",{FSYS=FSYS,PortableMusyX=PortableMusyX})
+local AudioRenderQueue=package("extract/AudioRenderQueue.lua",{PortableMusyX=PortableMusyX})
+local AudioProbe=package("extract/AudioProbe.lua",{FSYS=FSYS,PortableMusyX=PortableMusyX,AudioFidelity=AudioFidelity,AudioRenderQueue=AudioRenderQueue})
+local WazaSfxBuilder=package("extract/WazaSfxBuilder.lua",{FSYS=FSYS,PortableMusyX=PortableMusyX,AudioRenderQueue=AudioRenderQueue})
 local TrainerThrowSource=package("extract/TrainerThrowSource.lua")
 local TrainerExtractor=package("extract/TrainerExtractor.lua",{HSD=HSD,FSYS=FSYS,PayloadPreserver=PayloadPreserver,TrainerThrowSource=TrainerThrowSource})
 local ColosseumDex=package("lib/ColosseumDex.lua")
@@ -105,7 +110,7 @@ end
 local BuildPipeline=package("extract/BuildPipeline.lua",{
 GameCubeDisc=GameCubeDisc,FSYS=FSYS,GXTexture=GXTexture,HSD=HSD,
 ArenaBuilder=ArenaBuilder,TrainerExtractor=TrainerExtractor,
-TransitionBuilder=TransitionBuilder,AudioProbe=AudioProbe,WazaSfxBuilder=WazaSfxBuilder,
+TransitionBuilder=TransitionBuilder,AudioProbe=AudioProbe,WazaSfxBuilder=WazaSfxBuilder,AudioRenderQueue=AudioRenderQueue,
 PokemonExtractor=PokemonExtractor,MoveFXExtractor=MoveFXExtractor,FormatProbe=FormatProbe,CameraProbe=CameraProbe,ColosseumDex=ColosseumDex,
 LauncherCompat=launcherCompat,BuildVersion=VERSION,PlatformOS=PLATFORM_OS,GeneratedCacheReset=GeneratedCacheReset,
 })
@@ -139,10 +144,14 @@ end
 
 FidelityBuilder.recover(mod)
 extractionStatus={state="RUNNING",visualReady=false,audioReady=false,message="Starting GC6E01 source build."}
+local lastBuildLog=0
 local okPipeline,result=pcall(BuildPipeline.run,mod,function(label,current,total)
 extractionStatus.state="RUNNING";extractionStatus.message=tostring(label);extractionStatus.current=current;extractionStatus.total=total
 BuildProgressUI.update(label,current,total)
-if mod.log and mod.log.info then pcall(mod.log.info,mod.log,"CBE source build: %s (%s/%s)",tostring(label),tostring(current or "?"),tostring(total or "?")) end
+local clock=(love.timer and love.timer.getTime and love.timer.getTime())or os.clock()
+if clock-lastBuildLog>=1 and mod.log and mod.log.info then
+lastBuildLog=clock;pcall(mod.log.info,mod.log,"CBE source build: %s (%s/%s)",tostring(label),tostring(current or "?"),tostring(total or "?"))
+end
 end,buildOptions)
 if not okPipeline then error(result,0) end
 extractionStatus=result or extractionStatus
@@ -249,7 +258,7 @@ local runtimeAllowed=extractionStatus.visualReady==true and extractionStatus.aud
 local function module(name,arg)
 return package("lib/"..name..".lua",arg)
 end
-local namespace={mod=mod,FALLBACK=nil,engineRequire=require,
+local namespace={mod=mod,FALLBACK=nil,engineRequire=require,PackageRGBA=PackageRGBA,
 
 
 PayloadPreserver=package("extract/PayloadPreserver.lua"),GeneratedCacheReset=GeneratedCacheReset}
@@ -293,6 +302,8 @@ local MoveFXOwnership=loadModule("MoveFXOwnership")
 local ArenaCatalog=loadModule("ArenaCatalog")
 local ArenaAudienceProfile=loadModule("ArenaAudienceProfile")
 local ArenaCacheIdentity=loadModule("ArenaCacheIdentity")
+loadModule("ArenaWind")
+loadModule("CherryBlossomArena")
 local BattleArtBridge=loadModule("BattleArtBridge")
 loadModule("ShinySupport")
 loadModule("ModelIdentity")
@@ -308,7 +319,7 @@ local ColosseumFont=loadModule("ColosseumFont")
 mod.exports.colosseumFont=ColosseumFont
 namespace.UIPresentation=module("UI/Presentation")
 mod.exports.uiPresentation=namespace.UIPresentation
-namespace.MenuPresentation=module("UI/MenuPresentation")
+namespace.MenuPresentation=module("UI/MenuPresentation",namespace.UIPresentation)
 mod.exports.menuPresentation=namespace.MenuPresentation
 namespace.SummaryPresentation=module("UI/SummaryPresentation")
 mod.exports.summaryPresentation=namespace.SummaryPresentation
@@ -525,6 +536,7 @@ namespace.Gen3Runtime=module("Gen3/Runtime",namespace)
 namespace.Gen3Audio=module("Gen3/Audio",namespace)
 namespace.Gen3Presentation=module("Gen3/Presentation",namespace)
 namespace.Gen3BattleCamera=module("Gen3/BattleCamera",namespace)
+namespace.Gen3DeploymentCamera=module("Gen3/DeploymentCamera",namespace)
 namespace.Gen3Capture=module("Gen3/Capture",namespace)
 namespace.Gen3Overlay=module("Gen3/Overlay",namespace)
 namespace.Gen3Screens=module("Gen3/Screens",namespace)

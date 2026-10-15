@@ -1,7 +1,7 @@
 {
   "id": "COLOSSEUM_OVERHAUL",
   "name": "Colosseum Overhaul",
-  "version": "3.0.1",
+  "version": "3.3.11",
   "author": "Community",
   "api": 2,
   "entry": "main.lua",
@@ -36,7 +36,8 @@
   ],
   "incompatible": [],
   "permissions": [
-    "engine_internals"
+    "engine_internals",
+    "background"
   ],
   "affects_link": true,
   "description": "Colosseum arenas, Pokemon/trainer models, source battle effects and music, eligible trainer doubles, readable menus/dialogue, 386-species catalog, expanded encounters and detached Mt. Battle challenges. Supports Gen 1/2, FireRed/LeafGreen and Ruby/Sapphire/Emerald. Shared caches and all existing features are retained. See README.md for installation.",

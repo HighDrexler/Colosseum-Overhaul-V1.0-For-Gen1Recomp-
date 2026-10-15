@@ -1,5 +1,6 @@
 
 
+local sharedPresentation=...
 local M={}
 function M.bind(ctx)
 local love={graphics=ctx.graphics}
@@ -12,36 +13,13 @@ local partyHPBarFinal,partyMoveName,partyMovePP,partyStat=ctx.hpBar,ctx.moveName
 local UI_TEXT_SCALE=ctx.textScale or 1.08
 local function clamp(n,a,b) return math.max(a,math.min(b,n)) end
 local R={}
-local function drawColosseumRunoffPanel(x,y,w,h,headerH)
-local g=love.graphics
-local right=math.min(162,x+w+6)
-headerH=headerH or 14
-g.setColor(0.00,0.01,0.015,0.34)
-g.polygon("fill",x+5,y+3,right,y+3,right,y+h+3,x+5,y+h+3,
-x,y+h-2,x,y+8)
-
-
-GoldCompat.setUIColor("surface",0.030,0.105,0.108,0.88)
-g.polygon("fill",x+5,y,right,y,right,y+h,x+5,y+h,x,y+h-5,x,y+5)
-GoldCompat.setUIColor("surface",0.040,0.175,0.165,0.80)
-g.polygon("fill",x+4,y+3,right,y+3,right,y+headerH,x+7,y+headerH,
-x+3,y+headerH-4)
-GoldCompat.setUIColor("trim",0.36,0.63,0.61,0.95)
-g.setLineWidth(1.2)
-g.line(x+6,y,right,y)
-g.line(x+6,y+h,right,y+h)
-g.line(x,y+6,x,y+h-6)
-GoldCompat.setUIColor("trim",0.12,0.45,0.38,0.86)
-g.rectangle("fill",x+8,y+headerH,right-x-10,1)
+local presentation=assert(ctx.presentation or sharedPresentation)
+local runoffContext={g=love.graphics,setUIColor=GoldCompat.setUIColor}
+local function drawColosseumRunoffPanel(...)
+return presentation.runoffPanel(runoffContext,...)
 end
-
-local function drawColosseumRunoffSelection(x,y,w,h)
-local g=love.graphics
-local right=math.min(162,x+w+5)
-GoldCompat.setUIColor("selection",0.075,0.285,0.275,0.96)
-g.polygon("fill",x+6,y,right,y,right,y+h,x+6,y+h,x+2,y+h*0.5)
-GoldCompat.setUIColor("accent",1.00,0.34,0.16,1)
-g.polygon("fill",x+5,y+h*0.5,x+1,y+h*0.22,x+1,y+h*0.78)
+local function drawColosseumRunoffSelection(...)
+return presentation.runoffSelection(runoffContext,...)
 end
 function R.start(game, state)
 local g = love.graphics

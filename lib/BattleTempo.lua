@@ -11,7 +11,7 @@
 
 
 local V=...
-local T={version=1}
+local T={version=2}
 T.CHOICES={"game",1,2,4,10}
 local hostSpeed=setmetatable({},{__mode="k"})
 
@@ -74,7 +74,7 @@ end
 
 
 function T.hostSpeed(game)
-local fn=game and hostSpeed[game]
+local fn=game and game.logicSpeed==game.__cbeBattleTempo and hostSpeed[game]
 if fn then
 local ok,v=pcall(fn,game);v=ok and tonumber(v) or nil
 if finite(v) and v>0 then return v end
@@ -88,9 +88,9 @@ end
 
 
 
-
 function T.presentationRate(game)
-return T.active(game) or 1
+if not T.inBattle(game) then return 1 end
+return T.active(game) or T.hostSpeed(game or (V.mod and V.mod.game))
 end
 
 function T.attach(game)

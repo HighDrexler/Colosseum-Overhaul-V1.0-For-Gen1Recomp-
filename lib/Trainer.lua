@@ -1,4 +1,5 @@
 local V = ...
+local function createTrainer()
 local pendingReaction=nil
 local animationClock={}
 local BattleDirector=V.BattleDirector
@@ -560,7 +561,7 @@ local trigger,performanceId,actionDuration
 
 function T:begin(ctx)
 battleKey=battleOf(ctx)
-age=0;actionKind=nil;actionAge=0;actionStrength=0;initialSendoutQueued=false;initialOpeningQueued=false;lastSendingOut=false;pendingFrustration=nil;pendingApproval=nil;pendingReaction=nil;resultSeen=nil;drawFrames=0;currentMotion=nil
+age=0;animationClock.fixed=0;actionKind=nil;actionAge=0;actionStrength=0;initialSendoutQueued=false;initialOpeningQueued=false;lastSendingOut=false;pendingFrustration=nil;pendingApproval=nil;pendingReaction=nil;resultSeen=nil;drawFrames=0;currentMotion=nil
 performanceState=TrainerPerformance and TrainerPerformance.resetState(performanceState,performanceId and performanceId() or "dakim") or nil
 local cfg,reason=trainerModelFor(ctx)
 activeNow=cfg~=nil
@@ -580,7 +581,7 @@ end
 function T:update(ctx,dt)
 local b=battleOf(ctx)
 if b~=battleKey then
-battleKey=b;age=0;actionKind=nil;actionAge=0;actionStrength=0;initialSendoutQueued=false;initialOpeningQueued=false;lastSendingOut=false;pendingFrustration=nil;pendingApproval=nil;pendingReaction=nil;resultSeen=nil;activeNow=false;activationReason=nil;currentMotion=nil
+battleKey=b;age=0;animationClock.fixed=0;actionKind=nil;actionAge=0;actionStrength=0;initialSendoutQueued=false;initialOpeningQueued=false;lastSendingOut=false;pendingFrustration=nil;pendingApproval=nil;pendingReaction=nil;resultSeen=nil;activeNow=false;activationReason=nil;currentMotion=nil
 performanceState=TrainerPerformance and TrainerPerformance.resetState(performanceState,"dakim") or nil
 end
 local cfg,reason=trainerModelFor(ctx)
@@ -595,16 +596,17 @@ activationReason="load-error"
 log(ctx,"error","Enemy Colosseum actor failed to load during update: %s",tostring(err or errorText))
 end
 elseif not should and activeNow then
-activeNow=false;age=0;actionKind=nil;actionAge=0;actionStrength=0;initialOpeningQueued=false;pendingFrustration=nil;pendingApproval=nil;pendingReaction=nil;resultSeen=nil;activationReason=nil;currentMotion=nil
+activeNow=false;age=0;animationClock.fixed=0;actionKind=nil;actionAge=0;actionStrength=0;initialOpeningQueued=false;pendingFrustration=nil;pendingApproval=nil;pendingReaction=nil;resultSeen=nil;activationReason=nil;currentMotion=nil
 end
-local step=TrainerPerformance and TrainerPerformance.realDt(ctx,dt,animationClock) or (tonumber(dt) or 0)
+local idleStep=TrainerPerformance and TrainerPerformance.realDt(ctx,dt) or (tonumber(dt) or 0)
+local step=TrainerPerformance and TrainerPerformance.presentationDt(ctx,dt,activeNow and animationClock or nil) or (tonumber(dt) or 0)
 if activeNow then
-age=age+step
+age=age+idleStep
 
 
 
 
-if not initialOpeningQueued and age>=.70 then initialOpeningQueued=true;trigger("opening",.90) end
+if not initialOpeningQueued and (animationClock.fixed or age)>=.70 then initialOpeningQueued=true;trigger("opening",.90) end
 local sending=(b and b.enemySendingOut==true) or false
 local growing=(b and b.growIn and b.growIn.battler==b.enemy) and true or false
 
@@ -641,7 +643,7 @@ end
 if not actionKind and pendingReaction then
 local queued=pendingReaction;pendingReaction=nil;trigger(queued.kind,queued.strength)
 end
-currentMotion,performanceState=TrainerPerformance.step(performanceState,id,age,actionKind,actionAge,actionStrength,"enemy",step)
+currentMotion,performanceState=TrainerPerformance.step(performanceState,id,age,actionKind,actionAge,actionStrength,"enemy",idleStep)
 end
 end
 
@@ -691,7 +693,8 @@ payload=type(payload)=="table" and payload or {}
 local b0=battleOf(ctx)
 local gen2=b0 and b0.__cbeGeneration==2
 local gen3Owned=b0 and b0.__cbeGeneration==3 and V.Gen3Presentation
-and V.Gen3Presentation.session and V.Gen3Presentation.session.screen==b0
+and V.Gen3Presentation.session and (V.Gen3Presentation.session.screen==b0
+or V.Gen3Presentation.session.screen._model==b0._model)
 local queueSync=b0 and b0.__cbePresentationQueueSync==true
 if queueSync and ((gen2 or gen3Owned) and
 (name=="battle.move_used" or name=="battle.damage_dealt" or name=="battle.fainted")) then return end
@@ -774,6 +777,23 @@ local bob=sourceRoot and 0 or (motion.bob or 0)
 local forward=sourceRoot and 0 or (motion.forward or 0)
 return Mat4.mul(Mat4.translate(p.x+sway,p.y+bob-(root.compression or 0),p.z+forward),
 Mat4.mul(Mat4.rotateY(p.yaw),Mat4.mul(Mat4.scale(MODEL_SCALE,MODEL_SCALE,MODEL_SCALE),localAnim)))
+end
+
+function T:cameraCenter(y)
+local motion=idleMotion()
+local track=scene and scene.nativeTrack
+
+
+
+if track and TrainerPerformance and TrainerPerformance.terminal(actionKind) then
+local point=TrainerMorph.trackJoint(track,5,motion)
+if point then
+local m=animatedModel(self:entryPose(),motion)
+return {m[1]*point[1]+m[2]*point[2]+m[3]*point[3]+m[4],y or 3.5,
+m[9]*point[1]+m[10]*point[2]+m[11]*point[3]+m[12]}
+end
+end
+return self:anchor(y)
 end
 
 local function setShader(vp,model,pose,unlit,tint,opacity,motion)
@@ -945,7 +965,7 @@ love.graphics.setShader()
 end
 
 function T:finish(ctx,reason)
-battleKey=nil;age=0;actionKind=nil;actionAge=0;actionStrength=0;initialSendoutQueued=false;initialOpeningQueued=false;lastSendingOut=false;pendingFrustration=nil;pendingApproval=nil;pendingReaction=nil;resultSeen=nil;activeNow=false;activationReason=nil
+battleKey=nil;age=0;animationClock.fixed=0;actionKind=nil;actionAge=0;actionStrength=0;initialSendoutQueued=false;initialOpeningQueued=false;lastSendingOut=false;pendingFrustration=nil;pendingApproval=nil;pendingReaction=nil;resultSeen=nil;activeNow=false;activationReason=nil
 end
 
 
@@ -964,6 +984,7 @@ if sc then arenaModelScale=sc;applyModelScale() end
 end
 
 function T:anchor(y) return {FINAL_X,y or 7.0,FINAL_Z} end
+function T:setPlacement(x,z) FINAL_X=x;FINAL_Z=z end
 function T:resetRuntime()
 local all=sceneCache;sceneCache={};sceneErrors={};sceneUseSerial=0
 for _,entry in pairs(all or {}) do releaseScene(entry) end
@@ -974,19 +995,112 @@ releaseLoveObject(shadowMesh);releaseLoveObject(shadowImage);shadowImage=nil;sha
 releaseLoveObject(ballMeshRed);releaseLoveObject(ballMeshWhite);releaseLoveObject(ballMeshBlack);releaseLoveObject(ballTexture)
 currentConfig=nil;currentReason=nil
 ballMeshRed=nil;ballMeshWhite=nil;ballMeshBlack=nil;ballTexture=nil
-activeNow=false;age=0;drawFrames=0;actionKind=nil;actionAge=0;actionStrength=0;lastSendingOut=false
+activeNow=false;age=0;animationClock.fixed=0;drawFrames=0;actionKind=nil;actionAge=0;actionStrength=0;lastSendingOut=false
 return true
 end
+function T:battleHeight()
+return TrainerRoster and TrainerRoster.battleHeight and TrainerRoster.battleHeight(currentConfig) or 6.9
+end
 function T:status()
+local motion=idleMotion()
+local clip,a,b,u
+if scene and scene.nativeTrack then clip,a,b,u=TrainerMorph.trackSample(scene.nativeTrack,motion.nativeKind,motion.nativeAge,motion.nativeActionAge) end
+local residentModels=0;for _ in pairs(sceneCache) do residentModels=residentModels+1 end
 return {
 ready=scene~=nil,error=errorText,active=activeNow,age=age,
 reason=activationReason,
 model=(currentConfig and currentConfig.label) or (MODEL_CONFIG[currentModel] and MODEL_CONFIG[currentModel].label) or tostring(currentModel),
 modelSource=currentConfig and currentConfig.source or nil,modelReason=currentReason,
-battleHeight=TrainerRoster and TrainerRoster.battleHeight and TrainerRoster.battleHeight(currentConfig) or 6.9,
-pose="NativeHSD-clip1-nonbind-shoulder-anchored-throw-enemy",action=actionKind,pendingFrustration=pendingFrustration,modelScale=MODEL_SCALE,final={FINAL_X,0,FINAL_Z},drawFrames=drawFrames,
-mode=T:getMode(mod and mod.game),bossOnly=false,residentModels=(function() local n=0;for _ in pairs(sceneCache) do n=n+1 end;return n end)(),prewarmPending=#prewarmQueue,runtimeMeshHits=trainerRuntimeHits,runtimeMeshWrites=trainerRuntimeWrites,runtimeMeshFallbacks=trainerRuntimeFallbacks,morph=TrainerMorph.status(),windowsCompat=WINDOWS_RUNTIME,
+modelId=currentConfig and currentConfig.id,sourceClip=clip and clip.clip,sourceFrame=a and (a-1+(u or 0)*(b-a)),
+battleHeight=T:battleHeight(),
+pose="NativeHSD-clip1-nonbind-shoulder-anchored-throw-enemy",action=actionKind,actionAge=actionAge,actionDuration=actionDuration(actionKind),pendingFrustration=pendingFrustration,modelScale=MODEL_SCALE,final={FINAL_X,0,FINAL_Z},drawFrames=drawFrames,
+mode=T:getMode(mod and mod.game),bossOnly=false,residentModels=residentModels,prewarmPending=#prewarmQueue,runtimeMeshHits=trainerRuntimeHits,runtimeMeshWrites=trainerRuntimeWrites,runtimeMeshFallbacks=trainerRuntimeFallbacks,morph=TrainerMorph.status(),windowsCompat=WINDOWS_RUNTIME,
 }
 end
 
+return T
+end
+
+
+
+
+local T=createTrainer()
+local primary={}
+for k,v in pairs(T) do primary[k]=v end
+local partner,partnerContext,partnerBattle,pairedBattle,arenaProfile
+local function pairContext(ctx)
+local b=ctx and ctx.battle
+local identity=V.TrainerRoster and V.TrainerRoster.presentationPair and V.TrainerRoster.presentationPair(ctx)
+or b and b.trainerB
+if not (b and b.kind=='trainer' and identity) then return nil end
+if not partner then partner=createTrainer();T.partner=partner end
+if pairedBattle~=b then
+pairedBattle=b
+partnerBattle=setmetatable({},{__index=b})
+partnerContext=setmetatable({battle=partnerBattle},{__index=ctx})
+end
+partnerBattle.trainer=identity
+partnerBattle.trainerName=identity.name;partnerBattle.oppName=identity.name
+partnerBattle.oppClass=identity.className or identity.class
+partnerBattle.__cbeTrainerArchetype=identity.__cbeTrainerArchetype
+partnerBattle.__cbeNativeRival=identity.__cbeNativeRival==true
+partnerBattle.enemy=b.battlers and b.battlers[3] or b.enemy
+local p=arenaProfile and arenaProfile.trainers and arenaProfile.trainers.enemy or {-13,-27.8}
+local q=arenaProfile and arenaProfile.pokemon and arenaProfile.pokemon.player or {5,18}
+local dx,dz=q[1]-p[1],q[2]-p[2];local n=math.max(.001,math.sqrt(dx*dx+dz*dz))
+local sx,sz=dz/n*4.4,-dx/n*4.4
+primary.setPlacement(T,p[1]-sx,p[2]-sz);partner:setPlacement(p[1]+sx,p[2]+sz)
+return partnerContext
+end
+function T:forBattler(id)
+return id==3 and partnerContext and partner or self
+end
+function T:setArenaProfile(def)
+arenaProfile=def;primary.setArenaProfile(self,def)
+if partner then partner:setArenaProfile(def) end
+end
+function T:begin(ctx)
+local pc=pairContext(ctx)
+local ok,err=primary.begin(self,ctx)
+if pc then local ready,why=partner:begin(pc);if not ready then return false,why end end
+return ok,err
+end
+function T:update(ctx,dt)
+primary.update(self,ctx,dt)
+local pc=pairContext(ctx);if pc then partner:update(pc,dt) end
+end
+local function eventOwner(name,p)
+p=p or {};local fields
+if name=='battle.presentation_move' or name=='battle.move_used' then fields={'user','attacker','source','battler'}
+elseif name=='battle.presentation_damage' or name=='battle.damage_dealt' then fields={'target','defender'}
+elseif name=='battle.presentation_faint' or name=='battle.fainted' then fields={'battler','target'}
+elseif name=='battle.battler_switched' or name=='battle.status_inflicted' then fields={'battler','target'} end
+for _,key in ipairs(fields or {}) do
+local row=p[key];local id=type(row)=='table' and (row.battlerId or row.id) or type(row)=='number' and row
+if id==1 or id==3 then return id end
+end
+end
+function T:event(ctx,name,payload)
+local pc=pairContext(ctx);local owner=pc and eventOwner(name,payload)
+if owner~=3 then primary.event(self,ctx,name,payload) end
+if pc and owner~=1 then partner:event(pc,name,payload) end
+end
+for _,name in ipairs({'prewarm','draw','drawShadow','drawBall'}) do
+T[name]=function(self,ctx,...)
+local result=primary[name](self,ctx,...)
+local pc=pairContext(ctx);if pc then partner[name](partner,pc,...) end
+return result
+end
+end
+function T:finish(ctx,reason)
+primary.finish(self,ctx,reason)
+if partner then partner:finish(partnerContext,reason) end
+pairedBattle=nil;partnerContext=nil;partnerBattle=nil
+if arenaProfile then primary.setArenaProfile(self,arenaProfile) end
+end
+function T:resetRuntime()
+primary.resetRuntime(self);if partner then partner:resetRuntime() end
+pairedBattle=nil;partnerContext=nil;partnerBattle=nil
+return true
+end
 return T

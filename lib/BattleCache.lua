@@ -136,7 +136,8 @@ local key=why and ('error:'..tostring(why)) or rowKey(row)
 
 
 
-if battler then key=key..':battler:'..tostring(battler) end
+-- Startup validates appearances on disk. Different move sets on the same
+-- body do not need separate startup jobs; battle readiness remains per mon.
 if not seen[key] then rows[#rows+1]=row;seen[key]=true end
 end
 local party=not newGame and save and (save.party or save.pokemon or save.team)
@@ -196,7 +197,9 @@ end
 function C.quickReady(rows,game)
 local identity=A.sessionCacheIdentity()
 for _,row in ipairs(rows or {}) do
-if row.error or quickValidated[rowKey(row)]~=identity
+if type(A.startupModelReady)=="function" then
+if row.error or not A.startupModelReady(row.dex,row.variant) then return false end
+elseif row.error or quickValidated[rowKey(row)]~=identity
 or not A.peek('startup',row.dex,row.variant).resident
 or (type(A.requiredModelReady)=="function"
 and not A.requiredModelReady(row.dex,row.variant,game,row.battler)) then return false end
@@ -437,7 +440,9 @@ self.task=W.new(function()
 if row.error then return false,row.error end
 local result,why
 local prepareModel=A.prepareSessionModel
-if self.mode=="startup" and type(A.prepareRequiredModel)=="function" then
+if self.mode=="startup" and type(A.prepareStartupModel)=="function" then
+prepareModel=A.prepareStartupModel
+elseif self.mode=="startup" and type(A.prepareRequiredModel)=="function" then
 prepareModel=A.prepareRequiredModel
 elseif (self.mode=="quick" or self.mode=="full" or self.mode=="mtbattle")
 and type(A.prepareStorageModel)=="function" then
@@ -945,7 +950,8 @@ or (screen.phase=='messages' and screen.showPlayerBack==true and screen.showEnem
 
 
 if generation==1 and not screen.__cbeOpeningComplete then
-if screen.phase=='menu' then screen.__cbeOpeningComplete=true
+if screen.phase=='menu' or (doubles and doubles.core and doubles.core.phase=='command'
+and not doubles.actorPreflight) then screen.__cbeOpeningComplete=true
 else opening=true end
 end
 local doublesPresentation=doubles and doubles.core

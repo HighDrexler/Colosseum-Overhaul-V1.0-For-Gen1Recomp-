@@ -135,7 +135,13 @@ if not Camera or not syncCameraOwnership(s) then return base end
 local okClaim,claim=pcall(Camera.claim,Camera,s.context,s.context.phase)
 if not okClaim or claim==false then return base end
 local ok,pose=pcall(Camera.shot,Camera,s.context,s.context.phase,s.context.progress,base,s.context.arena)
-if ok and pose and pose.eye and pose.focus and pose.fov then return (V.FreeLookCamera and V.FreeLookCamera.pose(s.context,pose)) or pose end
+if ok and pose and pose.eye and pose.focus and pose.fov then
+if V.Gen3DeploymentCamera and s.battle and s.battle.__cbeGeneration==3 then
+local deployed=V.Gen3DeploymentCamera.pose(base,V.Gen3Presentation.session,s.context)
+if deployed then pose=deployed end
+end
+return (V.FreeLookCamera and V.FreeLookCamera.pose(s.context,pose)) or pose
+end
 return base
 end
 
@@ -164,7 +170,10 @@ if not arena then return false,"arena definition unavailable" end
 s.context.arena=arena
 local ok,accepted=pcall(Arena.begin,Arena,s.context,arena)
 if not ok then return false,accepted end
-if accepted==false or accepted==V.FALLBACK then return false,"arena declined" end
+if accepted==false or accepted==V.FALLBACK then
+local okStatus,status=pcall(Arena.status,Arena)
+return false,okStatus and status and status.error or "arena declined"
+end
 s.cameraActive=false
 syncCameraOwnership(s)
 if CurrentSprites then pcall(CurrentSprites.begin,CurrentSprites,s.context) end
@@ -177,6 +186,7 @@ battle=Compat and Compat.prepare(battle) or battle
 if not battle or not enabled(battle.game) then return false end
 local s={battle=battle,context=contextFor(battle),presented=false,started=false,
 pendingSemantics={move={player={},enemy={}},damage={player={},enemy={}},faint={player={},enemy={}}}}
+s.context.services.gen1CameraQueueSync=H.gen1CameraQueueInstalled==true
 H.session=s
 local ok,why=beginProviders(s)
 if not ok then
@@ -209,10 +219,27 @@ end
 
 local releaseGen1PresentationFaints
 
+local function emitGen1Camera(s,name,payload)
+if not (s and s.started and s.cameraActive and Camera
+and s.context.services and s.context.services.gen1CameraQueueSync) then return end
+payload=payload or {};payload.battle=s.battle;payload.presentationBoundary=true
+pcall(Camera.event,Camera,s.context,name,payload)
+end
+
+local function syncGen1CameraPhase(s)
+if not s.context.services.gen1CameraQueueSync then return end
+local phase=s.battle and s.battle.phase
+if phase~=s.gen1CameraNativePhase then
+s.gen1CameraNativePhase=phase
+if phase=="menu" then emitGen1Camera(s,"battle.presentation_command") end
+end
+end
+
 function H.updateCamera(dt)
 local s=H.session
 if not (s and s.started and tonumber(dt)) then return end
 if syncCameraOwnership(s) then
+syncGen1CameraPhase(s)
 s.context.services=s.context.services or {}
 s.context.services.cameraFrameClock=true
 pcall(Camera.update,Camera,s.context,math.max(0,math.min(.05,dt)))
@@ -234,6 +261,7 @@ local frame=V.FrameWork
 if not (s.context.services and s.context.services.presentationFrameClock)
 and not (frame and frame.active and frame.active(s.context.game)) then
 s.context.services.cameraFrameClock=nil
+syncGen1CameraPhase(s)
 if syncCameraOwnership(s) then pcall(Camera.update,Camera,s.context,dt) end
 end
 if Arena then
@@ -343,6 +371,46 @@ local prepared=Compat and Compat.prepare(battle) or battle
 return (Compat and Compat.matches and Compat.matches(s.battle,prepared)) or s.battle==prepared or s.battle==battle
 end
 
+local function emitGen1HitCamera(s,hit)
+if type(hit)~="table" then return end
+local t=tonumber(hit.animType)
+local target=hit.blink or (s.gen1CameraActiveMove and s.gen1CameraActiveMove.target)
+local side=target and target.isPlayer~=nil and (target.isPlayer and "player" or "enemy")
+or (t and (t<=3 and "player" or "enemy"))
+if not side then return end
+emitGen1Camera(s,(t==3 or t==6) and "battle.presentation_reaction" or "battle.presentation_damage",
+{target=target or (s.battle and s.battle[side]),targetSide=side,side=side})
+end
+
+local function runGen1CameraQueue(inner,self,...)
+local s=H.session
+if not (s and ownsSessionBattle(s,self) and s.context.services.gen1CameraQueueSync) then
+return inner(self,...)
+end
+local row=not self.current and self.queue and self.queue[1]
+s.gen1CameraInQueue=true;s.gen1CameraHits={}
+local function pack(...)return {n=select("#",...),...}end
+local results=pack(pcall(inner,self,...))
+s.gen1CameraInQueue=nil
+local hits=s.gen1CameraHits;s.gen1CameraHits=nil
+if not results[1] then error(results[2],0) end
+-- The native pre-animation delays put the same row back at the head.
+-- Announce a move only when that row is actually consumed, once per row.
+if type(row)=="table" and row.anim and not CAPTURE_ANIMS[row.anim]
+and (not self.queue or self.queue[1]~=row) and not row.__cbeCameraPresented then
+row.__cbeCameraPresented=true
+local original=s.gen1CameraPayloads and s.gen1CameraPayloads[row]
+local payload={};for k,v in pairs(type(original)=="table" and original or {}) do payload[k]=v end
+payload.side=row.attackerIsPlayer and "player" or "enemy";payload.moveId=row.anim
+payload.user=payload.user or (s.battle and s.battle[payload.side])
+s.gen1CameraActiveMove=payload
+emitGen1Camera(s,"battle.presentation_move",payload)
+H.gen1CameraMoves=(H.gen1CameraMoves or 0)+1
+end
+for _,hit in ipairs(hits or {}) do emitGen1HitCamera(s,hit) end
+return (table.unpack or unpack)(results,2,results.n)
+end
+
 local function captureStatus(s)
 if not (s and PlayerTrainer and type(PlayerTrainer.captureStatus)=="function") then return nil end
 local ok,st=pcall(PlayerTrainer.captureStatus,PlayerTrainer,s.context)
@@ -396,6 +464,13 @@ end
 function H.event(name,payload)
 local s=H.session
 if not s then return end
+if s.context.services.gen1CameraQueueSync and name=="battle.move_used" then
+local row=s.battle and s.battle.moveAnimRow
+if type(row)=="table" then
+s.gen1CameraPayloads=s.gen1CameraPayloads or setmetatable({},{__mode="k"})
+s.gen1CameraPayloads[row]=payload
+end
+end
 if name=="battle.ball_thrown" then
 s.captureHold={active=true,stripped=false,hideUI=true,released=false,caught=type(payload)=="table" and payload.caught or nil}
 H.captureQueueHolds=(H.captureQueueHolds or 0)+1
@@ -808,6 +883,24 @@ local req=V.engineRequire or require
 local ok,BattleState=pcall(req,"src.battle.BattleState")
 if not ok or type(BattleState)~="table" then H.lastError=tostring(BattleState);return false end
 installGen1FrameIsolation(req)
+H.gen1CameraQueueInstalled=(not Compat or not Compat.current or Compat.current()==1)
+and type(BattleState.updateQueue)=="function" and type(BattleState.applyHitFx)=="function"
+if H.session then H.session.context.services.gen1CameraQueueSync=H.gen1CameraQueueInstalled==true end
+if H.gen1CameraQueueInstalled and BattleState.applyHitFx~=H.hitCameraWrapper then
+local innerHit=BattleState.applyHitFx
+H.hitCameraEpoch=(H.hitCameraEpoch or 0)+1
+local epoch=H.hitCameraEpoch
+H.hitCameraWrapper=function(self,hit,...)
+if epoch~=H.hitCameraEpoch then return innerHit(self,hit,...) end
+local s=H.session
+if s and ownsSessionBattle(s,self) and s.context.services.gen1CameraQueueSync then
+if s.gen1CameraInQueue then s.gen1CameraHits[#s.gen1CameraHits+1]=hit
+else emitGen1HitCamera(s,hit) end
+end
+return innerHit(self,hit,...)
+end
+BattleState.applyHitFx=H.hitCameraWrapper
+end
 
 if type(BattleState.drawPicsLayer)=="function" and BattleState.drawPicsLayer~=H.picsWrapper then
 local inner=BattleState.drawPicsLayer
@@ -877,7 +970,7 @@ H.gen1FaintQueueHolds=(H.gen1FaintQueueHolds or 0)+1
 return true
 end
 end
-return inner(self,...)
+return runGen1CameraQueue(inner,self,...)
 end
 BattleState.updateQueue=H.updateQueueWrapper
 end

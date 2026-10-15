@@ -295,6 +295,7 @@ send.elapsed=send.elapsed+dt
 if not send.started and s.context then
 local side=r.slot:match('^player') and 'player' or 'enemy'
 local trainer=side=='player' and V.PlayerTrainer or V.Trainer
+if side=='enemy' and trainer and trainer.forBattler then trainer=trainer:forBattler(r.slot=='enemy-right' and 3 or 1) end
 local x,z,dx,dz=P.anchor(s.context,r.slot)
 if x then
 local ok,duration

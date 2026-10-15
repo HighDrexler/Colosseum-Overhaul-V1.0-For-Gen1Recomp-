@@ -85,6 +85,7 @@ local FORMAT={
 {"FramePack9","float",4},
 }
 
+-- Match hitFlash precision across shader stages for strict GLES linkers.
 local VERTEX=[[
 uniform mat4 vp;
 uniform mat4 model;
@@ -109,7 +110,7 @@ uniform float w9;
 uniform float w10;
 uniform float w11;
 uniform float w12;
-uniform float hitFlash;
+uniform mediump float hitFlash;
 attribute vec3 VertexNormal;
 attribute vec4 FramePack1;
 attribute vec4 FramePack2;
@@ -172,7 +173,7 @@ uniform vec4 materialColor;
 uniform float useTexture;
 uniform vec4 textureMaterial;
 uniform float opacity;
-uniform float hitFlash;
+uniform mediump float hitFlash;
 uniform float spawnFlash;
 uniform float shinyEnabled;
 uniform vec4 shinyRouteR;
@@ -573,6 +574,7 @@ local deleted=0
 
 
 speciesCacheValidity[key]=nil;A._sourceIdentityMemo[key]=nil;sourceMetadata[tostring(key)]=nil;pendingExtract[key]=nil
+if A._startupPrepared then A._startupPrepared[key]=nil end
 sessionPinned[key]=nil;sessionPrepared[key]=nil;requiredSessionPrepared[key]=nil;selectiveActionSpecs[key]=nil
 if A._compactAction then A._compactAction.inventoryMemo[key]=nil end
 local inventory=fullInventoryMemo
@@ -3435,8 +3437,21 @@ end
 
 
 
+-- Body/portrait warming only needs idle. A concrete team member needs its
+-- selected actions, not the full 17-bank source inventory on every cold load.
+local actionProfile,wantedActions
+if informationRequest or allowStorageBattleBody then
+actionProfile="storage"
+elseif opts and opts.battler then
+actionProfile="required";wantedActions={}
+local names,strict=requiredActionNames(opts.context and opts.context.game,opts.battler)
+for _,name in ipairs(names) do
+wantedActions[name]=(strict and strict[name]) and {name} or (NATIVE_FALLBACKS[name] or {name})
+end
+end
 local ok,result,extractErr=pcall(extractSource,mod,disc,dex,
-{variant=variant,targetHeight=16.0,decodeMode=A.decodeMode,skinFix=A.skinFix,renderPassFilter=true,progress=opts and opts.progress,checkpoint=opts and opts.progress})
+{variant=variant,targetHeight=16.0,decodeMode=A.decodeMode,skinFix=A.skinFix,renderPassFilter=true,
+actionProfile=actionProfile,wantedActions=wantedActions,progress=opts and opts.progress,checkpoint=opts and opts.progress})
 if not ok then
 extractionFailed(cacheKey,result)
 log("error","extraction raised for dex %s: %s",dex,tostring(result))
@@ -4108,6 +4123,7 @@ return true,{kept=kept,released=released}
 end
 
 function A.resetRuntime()
+A._startupPrepared={}
 A._sourceIdentityMemo={}
 sourceActionSelectors=setmetatable({},{__mode="k"})
 sessionPinned={};sessionPrepared={};requiredSessionPrepared={};sessionEpoch=sessionEpoch+1
@@ -4127,6 +4143,7 @@ return true
 end
 
 function A.invalidateGeneratedManifestMemo()
+A._startupPrepared={}
 A._sourceIdentityMemo={}
 if extractor and type(extractor.invalidateManifestMemo)=="function" then
 pcall(extractor.invalidateManifestMemo,mod)
@@ -5663,6 +5680,32 @@ end
 
 
 
+
+-- Startup needs a reusable body/idle on disk, not six GPU actors and every
+-- current move's animation pages. Runtime/battle readiness uses its separate
+-- per-battler signatures and cooperative preparation queue.
+function A.startupModelReady(dex,variant)
+local n=dexNumber(dex)
+if not (n and Dex.supported(n)) then return false end
+variant=A._modelVariant(dex,variant or "normal")
+local key=modelKey(n,variant)
+local rec=A._startupPrepared and A._startupPrepared[key]
+return type(rec)=="table" and rec[variant]==expectedSpeciesStamp()
+and speciesCacheReady(key)
+end
+function A.prepareStartupModel(dex,variant,progress)
+local n=dexNumber(dex)
+if not (n and Dex.supported(n)) then return false,"unsupported species" end
+variant=A._modelVariant(dex,variant or "normal")
+if A.startupModelReady(n,variant) then return true,"startup-cache-ready" end
+local ok,why=A.prepareStorageModel(n,variant,progress)
+if not ok then return false,why end
+A._startupPrepared=A._startupPrepared or {}
+local key=modelKey(n,variant)
+A._startupPrepared[key]=A._startupPrepared[key] or {}
+A._startupPrepared[key][variant]=expectedSpeciesStamp()
+return true,"startup-cache-ready"
+end
 
 function A.prepareFullCatalogModel(dex,variant,progress)
 local n=dexNumber(dex)

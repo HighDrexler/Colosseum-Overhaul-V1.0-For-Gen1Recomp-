@@ -15,15 +15,43 @@ assert(mod and mod.imports,"mod.imports is required")
 local info,err=mod.imports:info(IMPORT_ID);assert(info,err or "Colosseum source unavailable")
 assert(tonumber(info.size)==1459978240,"unexpected Colosseum source size")
 local self={mod=mod,info=info,files={},byPath={},byBase={}}
+
+
+
+local pages,stamp={},0
+local pageBytes,pageLimit=65536,8
+local function sourceRead(offset,length)
+local bytes,e=self.mod.imports:read(IMPORT_ID,offset,length)
+assert(bytes,e or "disc read failed");assert(#bytes==length,"short disc read")
+return bytes
+end
+local function smallRead(offset,length)
+local parts={};local at,left=offset,length
+while left>0 do
+local base=math.floor(at/pageBytes)*pageBytes;local hit=pages[base]
+stamp=stamp+1
+if not hit then
+local count,oldest,oldStamp=0,nil,math.huge
+for k,v in pairs(pages)do count=count+1;if v.stamp<oldStamp then oldest,oldStamp=k,v.stamp end end
+if count>=pageLimit then pages[oldest]=nil end
+hit={bytes=sourceRead(base,math.min(pageBytes,self.info.size-base))};pages[base]=hit
+end
+hit.stamp=stamp
+local within=at-base;local n=math.min(left,#hit.bytes-within)
+parts[#parts+1]=hit.bytes:sub(within+1,within+n);at=at+n;left=left-n
+end
+return table.concat(parts)
+end
 function self:read(offset,length)
-assert(type(offset)=="number" and type(length)=="number" and offset>=0 and length>=0,"invalid disc range")
+assert(type(offset)=="number" and type(length)=="number" and offset>=0 and length>=0
+and offset==math.floor(offset) and length==math.floor(length),"invalid disc range")
 if length==0 then return "" end
 assert(offset+length<=self.info.size,"disc read exceeds source")
+if length<=4096 then return smallRead(offset,length) end
 local parts={};local at=offset;local left=length
 while left>0 do
 local n=math.min(left,8*1024*1024)
-local bytes,e=self.mod.imports:read(IMPORT_ID,at,n);assert(bytes,e or "disc read failed")
-assert(#bytes==n,"short disc read")
+local bytes=sourceRead(at,n)
 parts[#parts+1]=bytes;at=at+n;left=left-n
 end
 return table.concat(parts)

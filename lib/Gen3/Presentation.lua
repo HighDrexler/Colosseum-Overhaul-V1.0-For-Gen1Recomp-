@@ -181,6 +181,7 @@ end
 
 
 if readinessOnly then return end
+if V.Gen3DeploymentCamera then V.Gen3DeploymentCamera.update(P.session,dt) end
 if P.session.movePresentation then V.DoublesMovePresentation.update(P.session,dt) end
 local pending=P.pendingMove
 if pending and pending.sourceFailureReason then P.failSourceMove(pending.event,pending.sourceFailureReason) end
@@ -373,6 +374,7 @@ end
 end
 function P.install()
 if P.installed then return end
+if V.Gen3DeploymentCamera then V.Gen3DeploymentCamera.install() end
 local C=V.CurrentSpriteModels
 for name,fn in pairs({begin=P.begin,update=P.update,drawWorld=P.draw,finish=P.finish}) do
 local native=C[name]

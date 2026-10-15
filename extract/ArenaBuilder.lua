@@ -1,6 +1,7 @@
 local V=...
 local HSD,FSYS=V and V.HSD,V and V.FSYS
 local Persist=V and V.PayloadPreserver
+local PackageRGBA=V and V.PackageRGBA
 local A={arenaRevision=16}
 local floor,abs,sin,cos=math.floor,math.abs,math.sin,math.cos
 local SPECS={
@@ -142,9 +143,8 @@ end
 local function textureBytes(mod,path,spec)
 local packaged=PACKAGED_TEXTURES[path]
 if packaged then
-local bytes=assert(mod:read(packaged),"missing CBE-authored texture: "..packaged)
-assert(#bytes==spec[1]*spec[2]*4,("bad CBE-authored texture size: %s"):format(packaged))
-return bytes
+assert(PackageRGBA,'packaged RGBA reader unavailable: '..packaged)
+return assert(PackageRGBA.read(mod,packaged,spec[1],spec[2]))
 end
 return makeTexture(path,spec[1],spec[2],spec[3])
 end
@@ -193,8 +193,16 @@ local function decodeSourceVertices(group)
 if type(group)~="table" then return nil,"arena group missing" end
 if type(group.vertices)=="table" then return group.vertices end
 if type(group.verticesPacked)~="string" then return nil,"arena vertex payload missing" end
+local packed=group.verticesPacked
+if group.verticesPackedEncoding=="zlib" then
+local size=tonumber(group.verticesPackedBytes)
+if not size or size<1 or size>64*1024*1024 or not (love and love.data and love.data.decompress) then return nil,"arena packed vertex decoder unavailable or invalid size" end
+local ok,bytes=pcall(love.data.decompress,"string","zlib",packed)
+if not ok or type(bytes)~="string" or #bytes~=size then return nil,"arena packed vertex data corrupt" end
+packed=bytes
+elseif group.verticesPackedEncoding~=nil then return nil,"unknown arena packed vertex encoding" end
 local rows={}
-for line in group.verticesPacked:gmatch("[^\r\n]+") do
+for line in packed:gmatch("[^\r\n]+") do
 local row={}
 for token in line:gmatch("[^,]+") do
 local value=tonumber(token)
@@ -248,7 +256,15 @@ if g.specular then out[#out+1]="specular="..vec(g.specular).."," end
 if g.shininess then out[#out+1]="shininess="..num(g.shininess).."," end
 if g.sourceMaterialAnimation then out[#out+1]="sourceMaterialAnimation="..sourceAnimLiteral(g.sourceMaterialAnimation).."," end
 if g.sourceTextureAnimation then out[#out+1]="sourceTextureAnimation="..sourceAnimLiteral(g.sourceTextureAnimation).."," end
-out[#out+1]="verticesPacked="..string.format("%q",packSourceVertices(g.vertices)).."},\n"
+local packed=packSourceVertices(g.vertices)
+if #packed>=4096 and love and love.data and love.data.compress then
+local ok,compressed=pcall(love.data.compress,"string","zlib",packed,1)
+if ok and type(compressed)=="string" and #compressed<#packed*.75 then
+out[#out+1]="verticesPackedEncoding=\"zlib\",verticesPackedBytes="..#packed..","
+packed=compressed
+end
+end
+out[#out+1]="verticesPacked="..string.format("%q",packed).."},\n"
 end
 out[#out+1]="}}\n";return table.concat(out)
 end
@@ -379,13 +395,29 @@ if not sourceFingerprint or meta.sourceFingerprint~=sourceFingerprint then retur
 
 if (meta.preserveSourceShell==true)~=(spec.preserveSourceShell==true) then return false end
 if spec.id=="water" and meta.audienceRevision~=2 then return false end
+local bundleSize
+if meta.runtimeBundle then
+if meta.runtimeStorage~="bundle-f32-v1" then return false end
+local info=runtimeInfo(mod,meta.runtimeBundle);if not info then return false end
+bundleSize=tonumber(meta.runtimeBundleBytes)
+if not bundleSize or bundleSize<144 or bundleSize%48~=0 or bundleSize>64*1024*1024 then return false end
+local actual=tonumber(info.size)
+if not actual then local bytes=runtimeRead(mod,meta.runtimeBundle);actual=bytes and #bytes end
+if actual~=bundleSize then return false end
+end
 local total=0
 for _,bucket in ipairs({"opaque","cutout","crowd","translucent","additive"}) do
 local rows=meta[bucket];if type(rows)~="table" then return false end
 for i,g in ipairs(rows) do
-local path=type(g)=="table" and (g.runtimeBin or runtimeBinPath(spec.id,bucket,i)) or nil
+if type(g)~="table" then return false end
+local path=g.runtimeBin or runtimeBinPath(spec.id,bucket,i)
+if bundleSize then
+local offset,size=tonumber(g.runtimeOffset),tonumber(g.runtimeBytes)
+if not offset or not size or offset<0 or offset%48~=0 or size<144 or size%48~=0 or offset+size>bundleSize then return false end
+else
 local info=path and runtimeInfo(mod,path) or nil;if not info then return false end;local size=tonumber(info.size)
 if size and (size<144 or size%48~=0) then return false end
+end
 total=total+1
 end
 end
@@ -568,6 +600,7 @@ local function writeRuntimeSidecarFromCache(mod,spec,cache,sourceSize,generated,
 local settings=ARENA_RUNTIME_SETTINGS[spec.id] or ARENA_RUNTIME_SETTINGS.water
 local preserveShell=spec.preserveSourceShell==true and cache.crowdPolicy=="source-hsd-crowd"
 local runtimeRows={opaque={},cutout={},crowd={},translucent={},additive={}};local textureAlpha={}
+local bundlePath=runtimeRoot(spec.id).."/vertices.f32";local chunks,bundleBytes={},0
 local culled,oversizeCulled,crowdOutliers,crowdKept=0,0,0,0
 for gi,g in ipairs(cache.groups or {}) do
 if progress and (gi==1 or gi%24==0 or gi==#cache.groups) then progress((spec.label or spec.id:upper()).." / RUNTIME MESH",gi,#cache.groups) end
@@ -602,12 +635,19 @@ local cpath=tostring(g.texture and g.texture.path or "");if cache.crowdPolicy=="
 elseif mode>=3 and mode<3.5 then bucket="cutout" elseif not g.xlu then bucket="opaque" else bucket="translucent" end
 if bucket then
 local ri=#runtimeRows[bucket]+1;local bin=runtimeBinPath(spec.id,bucket,ri);local bytes,perr=runtimePackRows(rows);assert(bytes,perr or "arena runtime pack failed")
-write(mod,bin,bytes,generated,preserveExisting);runtimeRows[bucket][ri]=runtimeCompactEntry(entry,g.texture,bin);if bucket=="crowd" then crowdKept=crowdKept+1 end
+local compact=runtimeCompactEntry(entry,g.texture,bin)
+compact.runtimeOffset=bundleBytes;compact.runtimeBytes=#bytes
+chunks[#chunks+1]=bytes;bundleBytes=bundleBytes+#bytes
+runtimeRows[bucket][ri]=compact;if bucket=="crowd" then crowdKept=crowdKept+1 end
 end
 end
 end
 end
-local meta={runtimeMeshVersion=ARENA_RUNTIME_MESH_VERSION,audienceRevision=2,textureStateVersion=cache.textureStateVersion,sourceFingerprint=sourceFingerprint,sourceSize=sourceSize,sourceCache=spec.cache,bounds=cache.bounds,source=cache.source,
+
+
+write(mod,bundlePath,table.concat(chunks),generated,preserveExisting)
+local meta={runtimeMeshVersion=ARENA_RUNTIME_MESH_VERSION,runtimeStorage="bundle-f32-v1",runtimeBundle=bundlePath,runtimeBundleBytes=bundleBytes,
+audienceRevision=2,textureStateVersion=cache.textureStateVersion,sourceFingerprint=sourceFingerprint,sourceSize=sourceSize,sourceCache=spec.cache,bounds=cache.bounds,source=cache.source,
 culled=culled,oversizeCulled=oversizeCulled,crowdOutliers=crowdOutliers,crowdOriginal=tonumber(cache.crowdOriginal) or 0,crowdKept=crowdKept,
 crowdPolicy=cache.crowdPolicy or "none",preserveSourceShell=preserveShell,
 opaque=runtimeRows.opaque,cutout=runtimeRows.cutout,crowd=runtimeRows.crowd,translucent=runtimeRows.translucent,additive=runtimeRows.additive}

@@ -1,8 +1,16 @@
-COLOSSEUM OVERHAUL 3.0.1
+COLOSSEUM OVERHAUL 3.3.8
 
 COMBINED RELEASE - GENERATIONS 1, 2 AND 3
 
-Fixes accelerated Ruby/Sapphire/Emerald starter model motion with real-time display updates. Native selection and confirmation are retained.
+3.3.8 fixes Gen 1 doubles preparation after deployment and Ruby/Sapphire Spikes dialogue on older native hosts. Camera framing uses direct trainer-height and manual-state reads to reduce temporary allocations. Existing features, diagnostics, source assets and cache formats are retained.
+
+Idle Pokemon and trainer loops keep their natural real-time pace at higher battle speeds, including resting partners during moves. Source moves, trainer actions, faint-return and capture still follow the native game speed or the Colosseum battle speed setting. Opposing trainers retain their defeat pose during ending dialogue while the camera moves gently around the speaker. Pyrite boundaries and two-trainer framing are retained.
+
+Outdoor foliage, hanging banners and cherry blossoms have stronger wind. Lightweight depth-tested outdoor atmosphere uses one static GPU batch; solid scenery, source assets and existing caches are retained.
+
+Fixes missing enemy Pokemon during Gen 3 doubles deployment. Native reveal and ball-opening events are delivered once even when rendered frames are irregular or battle tempo is accelerated. Existing cleanup, presentation, models and cache compatibility are retained.
+
+Adds CHERRY BLOSSOM GROVE: tall flowering trees, layered pink canopies, stone garden lanterns, moss, fallen blossoms and drifting 3D petals. Choose ARENA in the Colosseum battle settings. This original venue is included in the package and uses existing battle effects, models and camera controls across all three generations. The 3.0.1 starter animation correction is retained.
 
 Colosseum arenas, 386 Pokemon models/portraits, source trainer actors, Waza arena effects/audio, battle camera, doubles, HD battle UI, dialogue/menus, Gen 3 level-up stats, Colosseum Dex, expanded encounters, move preparation, optional EXP Share and Mt. Battle.
 
